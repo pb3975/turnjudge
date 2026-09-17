@@ -1,4 +1,4 @@
-# jev-review default configuration. Project overrides live in <repo>/.jev-review.toml.
+# turnjudge default configuration. Project overrides live in <repo>/.turnjudge.toml.
 
 [review]
 mode = "block"            # block | advise | off
@@ -32,4 +32,4 @@ extra_patterns = []
 
 [paths]
 standards = "STANDARDS.md"
-state_dir = "~/.local/state/jev-review"
+state_dir = "~/.local/state/turnjudge"

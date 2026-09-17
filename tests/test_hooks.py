@@ -25,7 +25,7 @@ def mark(repo, **kw):
 
 def check(repo, fake, **kw):
     session = kw.pop("session", "s1")
-    p = run_cli(["check"], stop_payload(repo, session=session, **kw), env={"JEV_REVIEW_FAKE": fake})
+    p = run_cli(["check"], stop_payload(repo, session=session, **kw), env={"TURNJUDGE_FAKE": fake})
     assert p.returncode == 0, p.stderr
     return p
 
@@ -102,7 +102,7 @@ def test_missing_mark_falls_back_to_head(repo, state_dir, block_fake):
 
 def test_no_git_repo(tmp_path, state_dir, block_fake):
     d = tmp_path / "plain"; d.mkdir(); (d / "f.py").write_text("x=1\n")
-    p = run_cli(["check"], stop_payload(d), env={"JEV_REVIEW_FAKE": block_fake})
+    p = run_cli(["check"], stop_payload(d), env={"TURNJUDGE_FAKE": block_fake})
     assert p.returncode == 0 and p.stdout == ""
     p = run_cli(["mark"], prompt_payload(d))
     assert p.returncode == 0 and p.stdout == ""
@@ -113,7 +113,7 @@ def test_garbage_stdin(repo, state_dir):
         import subprocess, os
         from tests.conftest import CLI
         p = subprocess.run(CLI + [cmd], input="not json{", capture_output=True, text=True, cwd=repo,
-                           env={**os.environ, "JEV_REVIEW_FAKE": "error:timeout"})
+                           env={**os.environ, "TURNJUDGE_FAKE": "error:timeout"})
         assert p.returncode == 0 and p.stdout == ""
 
 
@@ -121,7 +121,7 @@ def test_service_unavailable_is_a_notice_not_a_block(repo, state_dir):
     mark(repo); edit(repo)
     for kind in ("timeout", "rate", "connection"):
         p = check(repo, f"error:{kind}")
-        assert json.loads(p.stdout) == {"systemMessage": "jev-review skipped: service unavailable"}
+        assert json.loads(p.stdout) == {"systemMessage": "turnjudge skipped: service unavailable"}
         edit(repo, text=f"# {kind}\n")
 
 
@@ -136,8 +136,8 @@ def test_auth_failure_notifies_once(repo, state_dir):
 def test_missing_key_notifies_once(repo, state_dir, monkeypatch, tmp_path):
     mark(repo); edit(repo)
     import os
-    env = {"JEV_REVIEW_FAKE": "", "TYPESAFE_API_KEY": "", "HOME": str(tmp_path)}  # no key file under this HOME
-    env.pop("JEV_REVIEW_FAKE")
+    env = {"TURNJUDGE_FAKE": "", "TYPESAFE_API_KEY": "", "HOME": str(tmp_path)}  # no key file under this HOME
+    env.pop("TURNJUDGE_FAKE")
     p = run_cli(["check"], stop_payload(repo), env=env)
     assert p.returncode == 0
     # The real client is constructed only when no fake is set; without a key it must notify, not block.
@@ -149,15 +149,15 @@ def test_slow_service_respects_budget(repo, state_dir, tmp_path):
     cfg = tmp_path / "fast.toml"; cfg.write_text("[review]\ntimeout_seconds = 3\n")
     import time
     t0 = time.monotonic()
-    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"JEV_REVIEW_FAKE": "sleep:30"})
+    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"TURNJUDGE_FAKE": "sleep:30"})
     assert time.monotonic() - t0 < 10
-    assert p.returncode == 0 and json.loads(p.stdout) == {"systemMessage": "jev-review skipped: service unavailable"}
+    assert p.returncode == 0 and json.loads(p.stdout) == {"systemMessage": "turnjudge skipped: service unavailable"}
 
 
 def test_exception_path_never_reaches_agent(repo, state_dir, tmp_path):
     mark(repo); edit(repo)
     cfg = tmp_path / "bad.toml"; cfg.write_text("[review]\nmax_files = 'not a number'\n")
-    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"JEV_REVIEW_FAKE": "error:auth"})
+    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"TURNJUDGE_FAKE": "error:auth"})
     assert p.returncode == 0 and p.stdout == ""
     assert list(state_dir.glob("**/errors.log")) or (tmp_path / "x").exists() or True
 
@@ -165,7 +165,7 @@ def test_exception_path_never_reaches_agent(repo, state_dir, tmp_path):
 def test_mode_advise_downgrades_block(repo, state_dir, block_fake, tmp_path):
     mark(repo); edit(repo)
     cfg = tmp_path / "advise.toml"; cfg.write_text('[review]\nmode = "advise"\n')
-    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"JEV_REVIEW_FAKE": block_fake})
+    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"TURNJUDGE_FAKE": block_fake})
     out = json.loads(p.stdout)
     assert "decision" not in out and "swallow" in out["systemMessage"]
 
@@ -173,7 +173,7 @@ def test_mode_advise_downgrades_block(repo, state_dir, block_fake, tmp_path):
 def test_mode_off_is_silent(repo, state_dir, block_fake, tmp_path):
     mark(repo); edit(repo)
     cfg = tmp_path / "off.toml"; cfg.write_text('[review]\nmode = "off"\n')
-    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"JEV_REVIEW_FAKE": block_fake})
+    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"TURNJUDGE_FAKE": block_fake})
     assert p.stdout == ""
 
 
@@ -189,7 +189,7 @@ def test_too_large_delta_is_advisory(repo, state_dir, block_fake, tmp_path):
     for i in range(3):
         edit(repo, name=f"f{i}.py", text=f"x{i} = {i}\n")
     cfg = tmp_path / "small.toml"; cfg.write_text("[review]\nmax_files = 2\n")
-    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"JEV_REVIEW_FAKE": block_fake})
+    p = run_cli(["check", "--config", str(cfg)], stop_payload(repo), env={"TURNJUDGE_FAKE": block_fake})
     out = json.loads(p.stdout)
     assert "decision" not in out and "too large" in out["systemMessage"] and "swallow" in out["systemMessage"]
 
@@ -223,7 +223,7 @@ def test_doctor_quiet_is_hook_safe(repo, state_dir, tmp_path):
 
 def test_explain_prints_table_and_does_not_block(repo, state_dir, block_fake):
     mark(repo); edit(repo)
-    p = run_cli(["check", "--explain"], stop_payload(repo), env={"JEV_REVIEW_FAKE": block_fake})
+    p = run_cli(["check", "--explain"], stop_payload(repo), env={"TURNJUDGE_FAKE": block_fake})
     assert p.returncode == 0 and "turn outcome: block" in p.stdout and "decision" not in p.stdout
     # explain does not consume the block-once budget
     assert json.loads(check(repo, block_fake).stdout)["decision"] == "block"
@@ -234,9 +234,9 @@ def test_explain_range_reviews_commits_not_working_tree(repo, state_dir, block_f
     (repo / "app.py").write_text("def main():\n    return 2\n")
     git(repo, "add", "-A"); git(repo, "commit", "-q", "-m", "bump return value")
     (repo / "app.py").write_text("def main():\n    return 3\n")  # uncommitted; must not be reviewed
-    p = run_cli(["explain", "--range", "HEAD~1..HEAD"], env={"JEV_REVIEW_FAKE": block_fake}, cwd=repo)
+    p = run_cli(["explain", "--range", "HEAD~1..HEAD"], env={"TURNJUDGE_FAKE": block_fake}, cwd=repo)
     assert p.returncode == 0 and "turn outcome: block" in p.stdout
     rec = json.loads(list(state_dir.glob("*/audit/*.jsonl"))[0].read_text().splitlines()[-1])
     assert rec["files"][0]["state"]["task"].startswith("bump return value")
     assert "+    return 2" in rec["files"][0]["state"]["diff"] and "return 3" not in rec["files"][0]["state"]["diff"]
-    assert run_cli(["explain", "--range", "nodots"], env={"JEV_REVIEW_FAKE": block_fake}, cwd=repo).returncode == 1
+    assert run_cli(["explain", "--range", "nodots"], env={"TURNJUDGE_FAKE": block_fake}, cwd=repo).returncode == 1

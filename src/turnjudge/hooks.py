@@ -18,16 +18,16 @@ from concurrent.futures import ThreadPoolExecutor, wait
 from pathlib import Path
 from typing import Any
 
-from jev_review.config import DEFAULT_STANDARDS_PATH, PACKAGE_ROOT, Config, load_config, load_standards
-from jev_review.delta import FileDelta, GitError, file_deltas, git, head_tree, repo_language, repo_root, snapshot_tree, turn_files
-from jev_review.policy import (Answers, FileVerdict, T_TOO_LARGE, T_WITHHELD, apply_mode, decide_file, explain_table,
+from turnjudge.config import DEFAULT_STANDARDS_PATH, PACKAGE_ROOT, Config, load_config, load_standards
+from turnjudge.delta import FileDelta, GitError, file_deltas, git, head_tree, repo_language, repo_root, snapshot_tree, turn_files
+from turnjudge.policy import (Answers, FileVerdict, T_TOO_LARGE, T_WITHHELD, apply_mode, decide_file, explain_table,
                                render_feedback, worst)
-from jev_review.questions import questions
-from jev_review.state import build_state
-from jev_review.store import Store
+from turnjudge.questions import questions
+from turnjudge.state import build_state
+from turnjudge.store import Store
 
-NO_KEY_MSG = "jev-review disabled: no key (set TYPESAFE_API_KEY or create ~/.config/jev-review/key)"
-UNAVAILABLE_MSG = "jev-review skipped: service unavailable"
+NO_KEY_MSG = "turnjudge disabled: no key (set TYPESAFE_API_KEY or create ~/.config/turnjudge/key)"
+UNAVAILABLE_MSG = "turnjudge skipped: service unavailable"
 
 
 def _read_stdin_json() -> dict[str, Any]:
@@ -89,7 +89,7 @@ def do_mark(payload: dict[str, Any], cfg: Config) -> None:
 
 def _baseline_for(cfg: Config, repo: Path) -> dict[str, list[float]] | None:
     for p in (cfg.state_root() / "baselines" / f"{repo.name}.json",
-              repo / ".jev-review" / "baseline.json"):
+              repo / ".turnjudge" / "baseline.json"):
         if p.is_file():
             try:
                 return json.loads(p.read_text()).get("distributions")
@@ -101,7 +101,7 @@ def _baseline_for(cfg: Config, repo: Path) -> dict[str, list[float]] | None:
 def _percentile_note(baseline: dict[str, list[float]] | None, v: FileVerdict) -> str:
     if not baseline or not v.fired:
         return ""
-    from jev_review.calibrate import percentile
+    from turnjudge.calibrate import percentile
     rule = v.fired[0].rule
     key = rule if rule in v.values else None
     if key is None or key not in baseline:
@@ -201,7 +201,7 @@ def do_check(payload: dict[str, Any], cfg: Config, *, event: str, explain: bool 
         return res
 
     # Client
-    from jev_review.client import KeyError_, make_client
+    from turnjudge.client import KeyError_, make_client
     try:
         client = make_client(model=cfg.model, timeout=cfg.timeout_seconds)
     except KeyError_ as e:
@@ -273,7 +273,7 @@ def do_check(payload: dict[str, Any], cfg: Config, *, event: str, explain: bool 
             if note and v.fired:
                 feedback = feedback.replace(v.fired[0].message, v.fired[0].message + note, 1)
     if failed or timed_out:
-        res.notes.append(f"jev-review: {len(failed) + len(timed_out)} file(s) could not be judged this turn.")
+        res.notes.append(f"turnjudge: {len(failed) + len(timed_out)} file(s) could not be judged this turn.")
     text = "\n".join([feedback, *res.notes]).strip()
 
     if not explain:
@@ -352,7 +352,7 @@ def _hard_exit(code: int) -> None:
 
 def _fallback_error_log(where: str, exc: BaseException) -> None:
     import traceback
-    p = Path("~/.local/state/jev-review/errors.log").expanduser()
+    p = Path("~/.local/state/turnjudge/errors.log").expanduser()
     p.parent.mkdir(parents=True, exist_ok=True)
     with p.open("a") as f:
         f.write(f"{dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} {where}\n")
@@ -361,7 +361,7 @@ def _fallback_error_log(where: str, exc: BaseException) -> None:
 
 def _print_explain(res: CheckResult) -> None:
     if res.skipped_reason and not res.verdicts:
-        print(f"jev-review: nothing to review ({res.skipped_reason})")
+        print(f"turnjudge: nothing to review ({res.skipped_reason})")
         return
     print(explain_table(res.verdicts))
     print()
@@ -376,27 +376,27 @@ def _print_explain(res: CheckResult) -> None:
 
 
 def run_explain(*, config_path: str | None = None, as_json: bool = False, rev_range: str | None = None) -> int:
-    """On demand: review the working tree against HEAD, the session mark (JEV_REVIEW_SESSION), or a
+    """On demand: review the working tree against HEAD, the session mark (TURNJUDGE_SESSION), or a
     commit range such as main..feature (--range), which is how a PR is reviewed."""
     cwd = Path(os.getcwd())
     repo = repo_root(cwd)
     if repo is None:
-        print("jev-review: not a git repository")
+        print("turnjudge: not a git repository")
         return 1
     cfg = load_config(repo, Path(config_path) if config_path else None)
-    session = os.environ.get("JEV_REVIEW_SESSION") or "explain"
-    payload = {"cwd": str(cwd), "session_id": session, "prompt": os.environ.get("JEV_REVIEW_TASK", "")}
+    session = os.environ.get("TURNJUDGE_SESSION") or "explain"
+    payload = {"cwd": str(cwd), "session_id": session, "prompt": os.environ.get("TURNJUDGE_TASK", "")}
     rr = None
     if rev_range:
         if ".." not in rev_range:
-            print("jev-review: --range must look like base..head")
+            print("turnjudge: --range must look like base..head")
             return 1
         base, head = rev_range.split("..", 1)
         rr = (base, head or "HEAD")
     try:
         res = do_check(payload, cfg, event="Stop", explain=True, session_override=session, rev_range=rr)
     except Exception as e:
-        print(f"jev-review: error: {type(e).__name__}: {e}")
+        print(f"turnjudge: error: {type(e).__name__}: {e}")
         return 1
     if as_json:
         print(json.dumps({"outcome": res.outcome, "skipped": res.skipped_reason, "notes": res.notes,
@@ -413,7 +413,7 @@ def run_explain(*, config_path: str | None = None, as_json: bool = False, rev_ra
 # ---- doctor ----------------------------------------------------------------------------------
 
 def doctor_checks(cfg: Config, repo: Path | None) -> list[tuple[str, bool, str]]:
-    from jev_review.client import KEY_FILE, key_file_mode_ok, key_source
+    from turnjudge.client import KEY_FILE, key_file_mode_ok, key_source
     checks: list[tuple[str, bool, str]] = []
     src = key_source()
     if src == "none":
@@ -431,7 +431,7 @@ def doctor_checks(cfg: Config, repo: Path | None) -> list[tuple[str, bool, str]]
     else:
         checks.append(("repo", True, f"repo {repo.name}"))
         p = repo / cfg.standards
-        checks.append(("standards", True, f"standards: {p}" if p.is_file() else f"standards: default ({DEFAULT_STANDARDS_PATH.name}); run `jev-review init` to add {cfg.standards}"))
+        checks.append(("standards", True, f"standards: {p}" if p.is_file() else f"standards: default ({DEFAULT_STANDARDS_PATH.name}); run `turnjudge init` to add {cfg.standards}"))
     try:
         cfg.state_root().mkdir(parents=True, exist_ok=True)
         checks.append(("state", True, f"state dir {cfg.state_root()}"))
@@ -452,12 +452,12 @@ def run_doctor(*, quiet: bool = False, config_path: str | None = None) -> int:
     except Exception as e:
         if quiet:
             return 0
-        print(f"jev-review doctor: error: {type(e).__name__}: {e}")
+        print(f"turnjudge doctor: error: {type(e).__name__}: {e}")
         return 1
     bad = [c for c in checks if not c[1]]
     if quiet:
         if bad and repo is not None:
-            _emit({"systemMessage": "jev-review: " + "; ".join(c[2] for c in bad)})
+            _emit({"systemMessage": "turnjudge: " + "; ".join(c[2] for c in bad)})
         return 0
     for name, ok, msg in checks:
         print(f"{'ok  ' if ok else 'FAIL'} {name:<10} {msg}")
@@ -466,10 +466,10 @@ def run_doctor(*, quiet: bool = False, config_path: str | None = None) -> int:
         return 1
     # live probe when everything else passes and a key is present
     try:
-        from jev_review.client import make_client
+        from turnjudge.client import make_client
         from typesafe_sdk import Noul
         with make_client(model=cfg.model, timeout=min(cfg.timeout_seconds, 15.0)) as c:
-            j = c.judge({"probe": "jev-review doctor"}, {"ok": Noul(instructions="Is `probe` a short string?")})
+            j = c.judge({"probe": "turnjudge doctor"}, {"ok": Noul(instructions="Is `probe` a short string?")})
         if j.ok:
             print(f"ok   api        reachable ({j.seconds:.2f}s, model {j.raw.get('model')})")
         else:
@@ -484,14 +484,14 @@ def run_doctor(*, quiet: bool = False, config_path: str | None = None) -> int:
 
 # ---- init ------------------------------------------------------------------------------------
 
-INIT_TOML = """# jev-review project overrides. Defaults live in the plugin's jev-review.toml.
+INIT_TOML = """# turnjudge project overrides. Defaults live in the plugin's turnjudge.toml.
 
 [review]
 # mode = "block"          # block | advise | off
 # subagents = "advise"
 
 [thresholds]
-# Every value is uncalibrated until calibration/report.md in the jev-review repo says otherwise.
+# Every value is uncalibrated until calibration/report.md in the turnjudge repo says otherwise.
 # security_block = 0.85
 # swallows_failure_block = 0.85
 # unrequested_change_block = 0.80
@@ -508,7 +508,7 @@ standards = "STANDARDS.md"
 def run_init(path: Path, *, force: bool = False) -> int:
     root = repo_root(path) or path
     wrote = []
-    toml = root / ".jev-review.toml"
+    toml = root / ".turnjudge.toml"
     std = root / "STANDARDS.md"
     if force or not toml.exists():
         toml.write_text(INIT_TOML)
@@ -539,7 +539,7 @@ def _iter_audit_blocks(store: Store):
 
 
 def _is_fake(r: dict) -> bool:
-    """Records produced with JEV_REVIEW_FAKE carry model 'fake'; they are test artifacts, not blocks to mark."""
+    """Records produced with TURNJUDGE_FAKE carry model 'fake'; they are test artifacts, not blocks to mark."""
     return any(((f.get("response") or {}).get("model") == "fake") for f in r.get("files", []))
 
 
@@ -547,7 +547,7 @@ def run_feedback(session_prefix: str, mark: str, note: str, *, config_path: str 
     cwd = Path(os.getcwd())
     repo = repo_root(cwd)
     if repo is None:
-        print("jev-review: not a git repository")
+        print("turnjudge: not a git repository")
         return 1
     cfg = load_config(repo, Path(config_path) if config_path else None)
     store = Store(cfg, repo)
@@ -570,7 +570,7 @@ def run_feedback(session_prefix: str, mark: str, note: str, *, config_path: str 
     matched = [(p, r) for p, r in blocks if r["session_id"].startswith(session_prefix.split("/")[0])
                and ("/" not in session_prefix or str(r.get("turn")) == session_prefix.split("/")[1])]
     if not matched:
-        print(f"no block found for {session_prefix}; run `jev-review feedback x list`")
+        print(f"no block found for {session_prefix}; run `turnjudge feedback x list`")
         return 1
     with fb_path.open("a") as f:
         for p, r in matched:

@@ -1,8 +1,8 @@
 """Delta extraction: untracked, renamed, deleted, binary, over-cap; snapshots never touch the index."""
 from pathlib import Path
 
-from jev_review.delta import EMPTY_TREE, commit_file_delta, commit_files, file_deltas, head_tree, snapshot_tree, turn_files
-from jev_review.redact import redact_diff
+from turnjudge.delta import EMPTY_TREE, commit_file_delta, commit_files, file_deltas, head_tree, snapshot_tree, turn_files
+from turnjudge.redact import redact_diff
 from tests.conftest import git
 
 

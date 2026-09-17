@@ -1,5 +1,5 @@
 """percentile(): empty input, and values below/equal/above the sorted list."""
-from jev_review.calibrate import percentile
+from turnjudge.calibrate import percentile
 
 
 def test_percentile_empty_list_is_nan():

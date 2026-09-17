@@ -158,7 +158,7 @@ lifts `swallows_failure` and `unrequested_behavior_change` on the misses above, 
 turns during dogfood are the most likely source, since none of the 38 human-reviewed commits here
 were labeled disproportionate.
 
-**Threshold suggestions from this set (not shipped; all values in `jev-review.toml` remain
+**Threshold suggestions from this set (not shipped; all values in `turnjudge.toml` remain
 uncalibrated until Will's labels are in):** `swallows_failure_block` 0.85 to 0.60 and an advisory
 band at 0.40; `new_external_surface` moved from block to advise at 0.50; `tests_missing_advise`
 0.30 to 0.45; leave `unrequested_change_block` at 0.80.

@@ -1,4 +1,4 @@
-"""jev-review CLI: mark | check | calibrate | explain | doctor | init | audit.
+"""turnjudge CLI: mark | check | calibrate | explain | doctor | init | audit.
 
 Hook-facing commands (mark, check) must never exit non-zero or print anything but hook JSON.
 """
@@ -10,12 +10,12 @@ import json
 import sys
 from pathlib import Path
 
-from jev_review import __version__
-from jev_review.config import PACKAGE_ROOT, load_config
+from turnjudge import __version__
+from turnjudge.config import PACKAGE_ROOT, load_config
 
 
 def _calibrate(a: argparse.Namespace) -> int:
-    from jev_review import calibrate as cal
+    from turnjudge import calibrate as cal
     cfg = load_config(None, Path(a.config) if a.config else None)
     if a.sub == "candidates":
         rows = cal.candidates(Path(a.repo).expanduser(), a.range, a.max_commits, a.min_lines)
@@ -58,8 +58,8 @@ def _latency_probe(cfg, entries, records) -> dict:
     """Six requests in flight against six recorded states; wall time is what the Stop hook would see."""
     import time
     from concurrent.futures import ThreadPoolExecutor
-    from jev_review.client import JevClient
-    from jev_review.questions import questions
+    from turnjudge.client import JevClient
+    from turnjudge.questions import questions
     states = [records[e.key]["state"] for e in entries if e.key in records and records[e.key].get("state")][:6]
     if len(states) < 6:
         return {"error": f"only {len(states)} states available"}
@@ -73,8 +73,8 @@ def _latency_probe(cfg, entries, records) -> dict:
 
 
 def build_parser() -> argparse.ArgumentParser:
-    ap = argparse.ArgumentParser(prog="jev-review", description="End-of-turn semantic review for coding agents.")
-    ap.add_argument("--version", action="version", version=f"jev-review {__version__}")
+    ap = argparse.ArgumentParser(prog="turnjudge", description="End-of-turn semantic review for coding agents.")
+    ap.add_argument("--version", action="version", version=f"turnjudge {__version__}")
     sub = ap.add_subparsers(dest="cmd", required=True)
 
     for name in ("mark", "check"):
@@ -92,7 +92,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("--quiet", action="store_true", help="hook mode: print systemMessage JSON only if something is off")
     p.add_argument("--config", default=None)
 
-    p = sub.add_parser("init", help="write .jev-review.toml and STANDARDS.md into a project")
+    p = sub.add_parser("init", help="write .turnjudge.toml and STANDARDS.md into a project")
     p.add_argument("path", nargs="?", default=".")
     p.add_argument("--force", action="store_true")
 
@@ -139,7 +139,7 @@ def main(argv: list[str] | None = None) -> int:
     a = ap.parse_args(argv)
     if a.cmd == "calibrate":
         return _calibrate(a)
-    from jev_review import hooks
+    from turnjudge import hooks
     if a.cmd in ("mark", "check"):
         return hooks.run_hook(a.cmd, explain=a.explain, event_override=a.event, config_path=a.config)
     if a.cmd == "explain":
@@ -151,7 +151,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd == "feedback":
         return hooks.run_feedback(a.session_prefix, a.mark, a.note, config_path=a.config)
     if a.cmd == "audit":
-        from jev_review import audit
+        from turnjudge import audit
         return audit.run_audit(config_path=a.config)
     ap.error(f"unknown command {a.cmd}")
     return 2

@@ -1,7 +1,7 @@
 """Every rule fires and does not fire at its boundary; every template slot fills."""
 import pytest
 
-from jev_review.policy import (Answers, DEFAULT_THRESHOLDS, apply_mode, composite, decide_file, explain_table,
+from turnjudge.policy import (Answers, DEFAULT_THRESHOLDS, apply_mode, composite, decide_file, explain_table,
                                render_feedback, worst)
 from tests.conftest import fake_answers
 

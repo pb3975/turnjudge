@@ -195,7 +195,7 @@ def _identity_patterns() -> list[tuple[re.Pattern[str], str]]:
         host = ""
     if host and len(host) > 2:
         pats.append((re.compile(r"\b" + re.escape(host) + r"\b"), "<HOST>"))
-    for var in ("GIT_AUTHOR_EMAIL", "EMAIL", "JEV_REVIEW_USER_EMAIL"):
+    for var in ("GIT_AUTHOR_EMAIL", "EMAIL", "TURNJUDGE_USER_EMAIL"):
         v = os.environ.get(var)
         if v and "@" in v:
             pats.append((re.compile(re.escape(v)), "<EMAIL>"))

@@ -1,5 +1,5 @@
 [project]
-name = "jev-review"
+name = "turnjudge"
 version = "0.1.0"
 description = "End-of-turn semantic review for coding agents, judged by TypeSafe's System One model (Jev), decided in code."
 readme = "README.md"
@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-jev-review = "jev_review.cli:main"
+turnjudge = "turnjudge.cli:main"
 
 [dependency-groups]
 dev = ["pytest>=8.0"]

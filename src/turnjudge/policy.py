@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any
 
-from jev_review.questions import SCORE_LEVELS, SECURITY_IDS, score_top
+from turnjudge.questions import SCORE_LEVELS, SECURITY_IDS, score_top
 
 OUTCOME_RANK = {"pass": 0, "advise": 1, "block": 2}
 
@@ -88,31 +88,31 @@ def _short_task(task: str, n: int = 80) -> str:
 # ---- Feedback templates: fixed strings with slots ---------------------------------------------
 
 T_SECURITY = {
-    "introduces_secret": "jev-review: `{path}` appears to add a hardcoded credential, token, or key (p={p:.2f}). "
+    "introduces_secret": "turnjudge: `{path}` appears to add a hardcoded credential, token, or key (p={p:.2f}). "
                          "Read it from the environment or a key file instead, or explain in your reply why this value is not a secret.",
-    "unsafe_input_use": "jev-review: `{path}` appears to pass untrusted input to a shell, eval, SQL, a path, or a deserializer "
+    "unsafe_input_use": "turnjudge: `{path}` appears to pass untrusted input to a shell, eval, SQL, a path, or a deserializer "
                         "without validation (p={p:.2f}). Validate, parameterize, or escape it, or explain in your reply why the input is trusted.",
-    "weakens_check": "jev-review: `{path}` appears to remove or loosen a validation, auth, TLS, or safety check (p={p:.2f}). "
+    "weakens_check": "turnjudge: `{path}` appears to remove or loosen a validation, auth, TLS, or safety check (p={p:.2f}). "
                      "Restore an equivalent check, or explain in your reply why the check is no longer needed.",
-    "new_external_surface": "jev-review: `{path}` appears to add a new network call, dependency, or executable download (p={p:.2f}). "
+    "new_external_surface": "turnjudge: `{path}` appears to add a new network call, dependency, or executable download (p={p:.2f}). "
                             "Task: \"{task}\". Confirm in your reply that this new external surface was asked for, or remove it.",
 }
-T_SWALLOWS = ("jev-review: `{path}` appears to hide or swallow a failure that previously surfaced (p={p:.2f}). "
+T_SWALLOWS = ("turnjudge: `{path}` appears to hide or swallow a failure that previously surfaced (p={p:.2f}). "
               "Let the failure surface again, or explain in your reply why silencing it is correct here.")
-T_UNREQUESTED = ("jev-review: `{path}` appears to change behavior that the task did not ask for and your summary does not "
+T_UNREQUESTED = ("turnjudge: `{path}` appears to change behavior that the task did not ask for and your summary does not "
                  "mention (p={p:.2f}). Task: \"{task}\". Either revert the extra change or state it explicitly in your reply.")
-T_COMPLEXITY = ("jev-review: `{path}` adds {what} (control flow {cf}, abstraction {ab}) for a change judged as {beh_word} "
+T_COMPLEXITY = ("turnjudge: `{path}` adds {what} (control flow {cf}, abstraction {ab}) for a change judged as {beh_word} "
                 "(behavior {beh}). Task: \"{task}\". Either simplify to an inline change or explain in your reply why the "
                 "structure is needed.")
-T_MAINT = ("jev-review (advisory): `{path}` is judged hard to modify safely later (maintenance risk {mr}, confidence {conf:.2f}). "
+T_MAINT = ("turnjudge (advisory): `{path}` is judged hard to modify safely later (maintenance risk {mr}, confidence {conf:.2f}). "
            "Consider reducing coupling or adding a short comment on why it is shaped this way.")
-T_VERBOSITY = ("jev-review (advisory): `{path}` carries padding beyond what the task needs (verbosity {vb}): boilerplate, "
+T_VERBOSITY = ("turnjudge (advisory): `{path}` carries padding beyond what the task needs (verbosity {vb}): boilerplate, "
                "comments restating code, or redundant checks. Consider trimming it.")
-T_TESTS = ("jev-review (advisory): `{path}` adds behavior (behavior {beh}) without tests proportional to it "
+T_TESTS = ("turnjudge (advisory): `{path}` adds behavior (behavior {beh}) without tests proportional to it "
            "(tests_proportional p={p:.2f}). Add a test or say why none is needed.")
-T_TOO_LARGE = ("jev-review: this turn's delta was too large to judge reliably ({files} files, {bytes} bytes after redaction), "
+T_TOO_LARGE = ("turnjudge: this turn's delta was too large to judge reliably ({files} files, {bytes} bytes after redaction), "
                "so it was reviewed in advisory mode only.")
-T_WITHHELD = "jev-review: {n} file(s) were withheld from review by the redaction deny list: {paths}."
+T_WITHHELD = "turnjudge: {n} file(s) were withheld from review by the redaction deny list: {paths}."
 
 
 def decide_file(path: str, ans: Answers, thresholds: dict[str, float] | None = None,
@@ -202,7 +202,7 @@ def render_feedback(verdicts: list[FileVerdict], *, blocking: bool) -> str:
     lines: list[str] = []
     for v in verdicts:
         for f in v.fired:
-            lines.append(f.message if blocking or f.outcome == "advise" else f.message.replace("jev-review:", "jev-review (advisory):", 1))
+            lines.append(f.message if blocking or f.outcome == "advise" else f.message.replace("turnjudge:", "turnjudge (advisory):", 1))
     return "\n".join(lines)
 
 

@@ -4,12 +4,12 @@ from pathlib import Path
 
 import pytest
 
-from jev_review.client import KEY_FILE, JevClient, KeyError_, load_key
-from jev_review.questions import questions
+from turnjudge.client import KEY_FILE, JevClient, KeyError_, load_key
+from turnjudge.questions import questions
 
 pytestmark = pytest.mark.skipif(
-    os.environ.get("JEV_REVIEW_LIVE") != "1" or (not os.environ.get("TYPESAFE_API_KEY") and not KEY_FILE.is_file()),
-    reason="set JEV_REVIEW_LIVE=1 and provide a key to run live",
+    os.environ.get("TURNJUDGE_LIVE") != "1" or (not os.environ.get("TYPESAFE_API_KEY") and not KEY_FILE.is_file()),
+    reason="set TURNJUDGE_LIVE=1 and provide a key to run live",
 )
 
 

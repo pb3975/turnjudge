@@ -5,9 +5,9 @@ line that proves it. Unchecked items say why and what it would take. Regenerate 
 
 ```sh
 uv run pytest -q                       # tests
-uv run jev-review calibrate run        # calibration/report.md (recorded responses reused)
-uv run jev-review doctor               # setup and one live request
-uv run jev-review feedback x list      # blocks and their marks
+uv run turnjudge calibrate run        # calibration/report.md (recorded responses reused)
+uv run turnjudge doctor               # setup and one live request
+uv run turnjudge feedback x list      # blocks and their marks
 ```
 
 ## Summary
@@ -20,7 +20,7 @@ uv run jev-review feedback x list      # blocks and their marks
 | 4 | 10 sessions, 7 of 10 blocks helpful, no stall | 15 sessions, no stall, 0 blocks to mark | yes: sessions on his repos, marks |
 | 5 | doctor on a fresh machine from the README | passes here; fresh machine untried | yes, or a scratch VM |
 | 6 | Redaction corpus clean; audit log reviewed by Will | corpus clean; builder scan clean | yes: review the audit logs |
-| 7 | Plugin installs; /jev-review works | yes | no |
+| 7 | Plugin installs; /turnjudge works | yes | no |
 
 ## 1. All tests in section 6 pass in CI and locally
 
@@ -33,7 +33,7 @@ uv run jev-review feedback x list      # blocks and their marks
   unavailable, slow service within budget, mode advise/off, SubagentStop advisory, too-large delta,
   withheld files, secret in diff). Loop safety: `test_loop_safety_three_stops_one_block`.
   Offline integration: `tests/test_integration.py` against `calibration/responses/`.
-  Live smoke: `tests/test_live.py`, skipped without `JEV_REVIEW_LIVE=1` and a key; passed live on
+  Live smoke: `tests/test_live.py`, skipped without `TURNJUDGE_LIVE=1` and a key; passed live on
   2026-09-16. Latency: `calibration/report.md`, "6-file wall-time test".
 - [ ] In CI: not met. The repo is private with no remote, so no CI service has run it.
   `scripts/ci.sh` runs the same steps; `.github/workflows/ci.yml` is ready for when a remote exists.
@@ -47,7 +47,7 @@ uv run jev-review feedback x list      # blocks and their marks
   mostly clean; the pushback cases were found by tracing later "address review" commits back to
   the delta they corrected. What it would take: Will corrects the verdicts and labels in
   `calibration/labels.yaml` (each entry has a `note` with the reasoning) and adds enough
-  pushback deltas to reach 20 of 40. Candidates: `uv run jev-review calibrate candidates --repo
+  pushback deltas to reach 20 of 40. Candidates: `uv run turnjudge calibrate candidates --repo
   ~/Work/nests --range HEAD`. Agent-written turns from dogfood sessions are the most likely
   source of disproportionate-complexity examples; none of the 38 human-reviewed commits has one.
 
@@ -81,16 +81,16 @@ count until criterion 2 is met.
   unreadable directories quietly" scored `swallows_failure` 0.84 against a block threshold of 0.85;
   the calibration assessment's suggested 0.60 would have blocked it. Whether that block would have
   been helpful is Will's call. Sessions on Will's own repos and the marks are his to run and give:
-  `claude plugin install jev-review@jev-review-local` (after `claude plugin marketplace add
-  ~/Work/jev-review`), work as usual, then `jev-review feedback <session-prefix>/<turn>
-  helpful|unhelpful` for each block. `jev-review feedback x list` shows the blocks.
+  `claude plugin install turnjudge@turnjudge-local` (after `claude plugin marketplace add
+  ~/Work/turnjudge`), work as usual, then `turnjudge feedback <session-prefix>/<turn>
+  helpful|unhelpful` for each block. `turnjudge feedback x list` shows the blocks.
   No stall: every hook path exits 0 with a hard exit past the budget
   (`tests/test_hooks.py::test_slow_service_respects_budget`), and the audit log records
   `seconds` per check.
 
 ## 5. doctor passes on a fresh machine following only the README
 
-- [ ] Partially. `uv run jev-review doctor` passes on this machine (all checks including one live
+- [ ] Partially. `uv run turnjudge doctor` passes on this machine (all checks including one live
   request; output recorded below). A fresh machine has not been tried. What it would take: Will or
   a scratch VM follows README "Install" steps 1 to 3.
 
@@ -101,19 +101,19 @@ count until criterion 2 is met.
   Hook-level: `test_withheld_files_are_named_and_not_sent` and
   `test_secret_in_diff_is_redacted_before_audit` assert the audit log carries no secret.
 - [ ] Audit log reviewed by Will: not met. The logs are under
-  `~/.local/state/jev-review/jev-review-*/audit/`. The builder scanned them for the home path,
+  `~/.local/state/turnjudge/turnjudge-*/audit/`. The builder scanned them for the home path,
   email, hostname, and key prefixes (zero hits in sent state); Will's review is still required.
 
-## 7. Plugin installs via marketplace add and plugin install; /jev-review works
+## 7. Plugin installs via marketplace add and plugin install; /turnjudge works
 
-- [x] `claude plugin marketplace add /home/wam/Work/jev-review` then
-  `claude plugin install jev-review@jev-review-local --scope local` succeeded in a scratch repo on
-  2026-09-16 (`claude plugin list` shows jev-review@jev-review-local 0.1.0 enabled).
-  `claude plugin validate .` passes. `/jev-review` invoked headlessly in that repo ran
-  `jev-review explain` through the plugin and printed the answer table (live Jev answers; a
+- [x] `claude plugin marketplace add /home/wam/Work/turnjudge` then
+  `claude plugin install turnjudge@turnjudge-local --scope local` succeeded in a scratch repo on
+  2026-09-16 (`claude plugin list` shows turnjudge@turnjudge-local 0.1.0 enabled).
+  `claude plugin validate .` passes. `/turnjudge` invoked headlessly in that repo ran
+  `turnjudge explain` through the plugin and printed the answer table (live Jev answers; a
   `try/except Exception: pass` around `os.system` scored `swallows_failure` 0.94 and
   `unsafe_input_use` 0.82). The SessionStart and UserPromptSubmit hooks ran in that session
-  (`~/.local/state/jev-review/plugin-test-*/sessions/`).
+  (`~/.local/state/turnjudge/plugin-test-*/sessions/`).
 
 ## Dogfood sessions
 
@@ -124,21 +124,21 @@ Filled in as sessions run. Each row is one audited session on this repo.
 | 2026-09-17 | nests | 17a451ef | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | 17dd0573 | 1 | 0 | 1 | 0 | 0.67 | tests_proportional | - |
 | 2026-09-17 | qb | 256efb75 | 1 | 0 | 0 | 0 | 0.59 | - | - |
-| 2026-09-17 | jev-review | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
+| 2026-09-17 | turnjudge | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
 | 2026-09-17 | qb | 38e774a3 | 1 | 0 | 1 | 0 | 0.56 | tests_proportional | - |
 | 2026-09-17 | qb | 402335ab | 1 | 0 | 0 | 0 | 0.46 | - | - |
 | 2026-09-17 | nests | 4327693a | 1 | 0 | 0 | 0 | 0.62 | - | - |
-| 2026-09-17 | jev-review | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
+| 2026-09-17 | turnjudge | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
 | 2026-09-17 | qb | 4ff943e4 | 1 | 0 | 0 | 0 | 0.46 | - | - |
 | 2026-09-17 | qb | 6a8cf403 | 1 | 0 | 0 | 0 | 0.53 | - | - |
 | 2026-09-17 | qb | 90b4c816 | 1 | 0 | 0 | 0 | 0.52 | - | - |
-| 2026-09-17 | jev-review | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
+| 2026-09-17 | turnjudge | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
 | 2026-09-17 | qb | c9d3b509 | 1 | 0 | 0 | 0 | 0.59 | - | - |
 | 2026-09-17 | nests | c9e99945 | 1 | 0 | 0 | 0 | 0.49 | - | - |
 | 2026-09-17 | nests | cf6e180f | 1 | 0 | 0 | 0 | 0.57 | - | - |
-| 2026-09-17 | jev-review | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
+| 2026-09-17 | turnjudge | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | eb806de3 | 1 | 0 | 0 | 0 | 0.73 | - | - |
-| 2026-09-17 | jev-review | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
+| 2026-09-17 | turnjudge | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
 | 2026-09-17 | qb | fee4d00b | 1 | 0 | 0 | 0 | 0.83 | - | - |
 
 19 sessions, 19 checks, 0 blocks, 3 advisories, 0 skipped, max seconds 0.83
@@ -175,7 +175,7 @@ eer-openai-agentic-software-factory.yaml pass       1.75    0.00    0.01    0.04
 arp-crawl-walk-run-software-factory.yaml pass       1.88    0.00    0.05    0.03    0.06    0.10    0.05    0.09    0.78    0.04    0.02    0.02    0.03
 
 turn outcome: pass
-audit: /home/wam/.local/state/jev-review/asf-99a3d97b/audit/2026-09-17.jsonl
+audit: /home/wam/.local/state/turnjudge/asf-99a3d97b/audit/2026-09-17.jsonl
 ```
 
 nests PR 95 "Publish verified fleet bundles and verify Host downloads" (2 commits, 10 files: two
@@ -197,7 +197,7 @@ scripts/fleet-release/manifest_test.py   pass       1.01    1.28    1.00    0.20
 scripts/fleet-release/package.sh         pass       2.58    1.74    0.19    1.58    0.87    0.36    0.12    0.70    0.40    0.04    0.19    0.10    0.11
 
 turn outcome: pass
-audit: /home/wam/.local/state/jev-review/nests-1a3dfcc4/audit/2026-09-17.jsonl
+audit: /home/wam/.local/state/turnjudge/nests-1a3dfcc4/audit/2026-09-17.jsonl
 ```
 
 ## Evidence log
@@ -209,22 +209,22 @@ $ uv run pytest -q   (2026-09-16T22:03:41-05:00)
 ........................................................................ [ 97%]
 .....                                                                    [100%]
 
-$ JEV_REVIEW_LIVE=1 uv run pytest -q tests/test_live.py
+$ TURNJUDGE_LIVE=1 uv run pytest -q tests/test_live.py
 .                                                                        [100%]
 
-$ uv run jev-review doctor
-ok   key        key file /home/wam/.config/jev-review/key (mode 0600)
+$ uv run turnjudge doctor
+ok   key        key file /home/wam/.config/turnjudge/key (mode 0600)
 ok   git        git on PATH
-ok   repo       repo jev-review
-ok   standards  standards: /home/wam/Work/jev-review/STANDARDS.md
-ok   state      state dir /home/wam/.local/state/jev-review
-ok   config     config: /home/wam/Work/jev-review/jev-review.toml
+ok   repo       repo turnjudge
+ok   standards  standards: /home/wam/Work/turnjudge/STANDARDS.md
+ok   state      state dir /home/wam/.local/state/turnjudge
+ok   config     config: /home/wam/Work/turnjudge/turnjudge.toml
 ok   mode       mode=block subagents=advise timeout=45.0s model=jev-latest
 ok   api        reachable (0.34s, model jev-1.13.0)
 
 all checks passed.
 
-$ uv run jev-review calibrate run (summary lines)
+$ uv run turnjudge calibrate run (summary lines)
 Generated 2026-09-16T22:03 from 38 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
 Verdict balance: 28 clean, 10 pushback, 0 unmarked.
 | behavior_added | 38 | 0.33 | 0.66 | 0.97 | 1.42 | 1.71 | 0.71 |

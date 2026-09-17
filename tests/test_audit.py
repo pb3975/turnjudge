@@ -3,9 +3,9 @@ import subprocess
 
 import pytest
 
-from jev_review.audit import daily_summary, run_audit
-from jev_review.config import load_config
-from jev_review.store import Store
+from turnjudge.audit import daily_summary, run_audit
+from turnjudge.config import load_config
+from turnjudge.store import Store
 
 
 @pytest.fixture
@@ -26,7 +26,7 @@ def write_audit_day(store: Store, day: str, records: list[dict]) -> None:
 
 
 def test_daily_summary_counts_outcomes_and_tokens(tmp_path, monkeypatch, repo):
-    monkeypatch.setenv("JEV_REVIEW_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("TURNJUDGE_STATE_DIR", str(tmp_path / "state"))
     cfg = load_config(repo)
     store = Store(cfg, repo)
     write_audit_day(store, "2026-09-16", [
@@ -46,7 +46,7 @@ def test_daily_summary_counts_outcomes_and_tokens(tmp_path, monkeypatch, repo):
 
 
 def test_run_audit_prints_per_day_report(tmp_path, monkeypatch, repo, capsys):
-    monkeypatch.setenv("JEV_REVIEW_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("TURNJUDGE_STATE_DIR", str(tmp_path / "state"))
     cfg = load_config(repo)
     store = Store(cfg, repo)
     write_audit_day(store, "2026-09-16", [
@@ -66,7 +66,7 @@ def test_run_audit_prints_per_day_report(tmp_path, monkeypatch, repo, capsys):
 
 
 def test_run_audit_no_records(tmp_path, monkeypatch, repo, capsys):
-    monkeypatch.setenv("JEV_REVIEW_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("TURNJUDGE_STATE_DIR", str(tmp_path / "state"))
     monkeypatch.chdir(repo)
 
     rc = run_audit()
@@ -77,7 +77,7 @@ def test_run_audit_no_records(tmp_path, monkeypatch, repo, capsys):
 
 
 def test_run_audit_outside_git_repo(tmp_path, monkeypatch, capsys):
-    monkeypatch.setenv("JEV_REVIEW_STATE_DIR", str(tmp_path / "state"))
+    monkeypatch.setenv("TURNJUDGE_STATE_DIR", str(tmp_path / "state"))
     plain = tmp_path / "plain"
     plain.mkdir()
     monkeypatch.chdir(plain)

@@ -1,4 +1,4 @@
-"""Configuration: shipped defaults in jev-review.toml, overridden by <repo>/.jev-review.toml."""
+"""Configuration: shipped defaults in turnjudge.toml, overridden by <repo>/.turnjudge.toml."""
 
 from __future__ import annotations
 
@@ -9,9 +9,9 @@ from pathlib import Path
 from typing import Any
 
 PACKAGE_ROOT = Path(__file__).resolve().parent.parent.parent
-DEFAULT_CONFIG_PATH = PACKAGE_ROOT / "jev-review.toml"
+DEFAULT_CONFIG_PATH = PACKAGE_ROOT / "turnjudge.toml"
 DEFAULT_STANDARDS_PATH = PACKAGE_ROOT / "STANDARDS.md"
-PROJECT_CONFIG_NAME = ".jev-review.toml"
+PROJECT_CONFIG_NAME = ".turnjudge.toml"
 
 
 @dataclass
@@ -30,7 +30,7 @@ class Config:
     deny_paths: list[str] = field(default_factory=list)
     extra_patterns: list[str] = field(default_factory=list)
     standards: str = "STANDARDS.md"
-    state_dir: str = "~/.local/state/jev-review"
+    state_dir: str = "~/.local/state/turnjudge"
     source_files: list[str] = field(default_factory=list)
 
     def state_root(self) -> Path:
@@ -53,7 +53,7 @@ def _read_toml(path: Path) -> dict[str, Any]:
 
 
 def load_config(repo_root: Path | None = None, extra: Path | None = None) -> Config:
-    """Shipped defaults, then <repo>/.jev-review.toml, then an explicit extra file."""
+    """Shipped defaults, then <repo>/.turnjudge.toml, then an explicit extra file."""
     raw: dict[str, Any] = {}
     sources: list[str] = []
     for p in [DEFAULT_CONFIG_PATH,
@@ -80,7 +80,7 @@ def load_config(repo_root: Path | None = None, extra: Path | None = None) -> Con
         deny_paths=list(redact.get("deny_paths", [])),
         extra_patterns=list(redact.get("extra_patterns", [])),
         standards=paths.get("standards", "STANDARDS.md"),
-        state_dir=os.environ.get("JEV_REVIEW_STATE_DIR") or paths.get("state_dir", "~/.local/state/jev-review"),
+        state_dir=os.environ.get("TURNJUDGE_STATE_DIR") or paths.get("state_dir", "~/.local/state/turnjudge"),
         source_files=sources,
     )
     return cfg

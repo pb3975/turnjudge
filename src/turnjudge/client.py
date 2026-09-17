@@ -1,6 +1,6 @@
 """TypeSafe client wrapper: key handling, retries, timeouts, and raw-response recording.
 
-The key is read from TYPESAFE_API_KEY or ~/.config/jev-review/key (mode 0600). It is never
+The key is read from TYPESAFE_API_KEY or ~/.config/turnjudge/key (mode 0600). It is never
 read from a project directory, never written anywhere, and never logged.
 """
 
@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import Any
 
 KEY_ENV = "TYPESAFE_API_KEY"
-KEY_FILE = Path("~/.config/jev-review/key").expanduser()
+KEY_FILE = Path("~/.config/turnjudge/key").expanduser()
 
 
 class KeyError_(Exception):
@@ -141,16 +141,16 @@ class JevClient:
 
 # ---- Offline fake for tests and dry runs ------------------------------------------------------
 
-FAKE_ENV = "JEV_REVIEW_FAKE"
+FAKE_ENV = "TURNJUDGE_FAKE"
 
 
 class FakeClient:
-    """Stands in for JevClient when JEV_REVIEW_FAKE is set.
+    """Stands in for JevClient when TURNJUDGE_FAKE is set.
 
-    JEV_REVIEW_FAKE=<path.json>   answers come from that file: {"default": {...answers...},
+    TURNJUDGE_FAKE=<path.json>   answers come from that file: {"default": {...answers...},
                                   "by_path": {"src/x.py": {...answers...}}}
-    JEV_REVIEW_FAKE=error:<kind>  every judge() fails with that error kind (auth|rate|timeout|connection)
-    JEV_REVIEW_FAKE=sleep:<sec>   every judge() sleeps that long, then answers "all clear"
+    TURNJUDGE_FAKE=error:<kind>  every judge() fails with that error kind (auth|rate|timeout|connection)
+    TURNJUDGE_FAKE=sleep:<sec>   every judge() sleeps that long, then answers "all clear"
     """
 
     def __init__(self, spec: str):

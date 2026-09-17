@@ -10,7 +10,7 @@ import traceback
 from pathlib import Path
 from typing import Any
 
-from jev_review.config import Config
+from turnjudge.config import Config
 
 
 def project_slug(repo: Path) -> str:

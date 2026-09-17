@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parent.parent
-CLI = [str(ROOT / ".venv" / "bin" / "python"), "-m", "jev_review.cli"]
+CLI = [str(ROOT / ".venv" / "bin" / "python"), "-m", "turnjudge.cli"]
 
 
 def git(repo: Path, *args: str) -> str:
@@ -16,7 +16,7 @@ def git(repo: Path, *args: str) -> str:
 @pytest.fixture
 def state_dir(tmp_path, monkeypatch):
     d = tmp_path / "state"
-    monkeypatch.setenv("JEV_REVIEW_STATE_DIR", str(d))
+    monkeypatch.setenv("TURNJUDGE_STATE_DIR", str(d))
     return d
 
 

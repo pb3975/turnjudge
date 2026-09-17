@@ -2,7 +2,7 @@
 import json
 from pathlib import Path
 
-from jev_review.policy import Answers, decide_file
+from turnjudge.policy import Answers, decide_file
 from tests.conftest import run_cli
 
 RESP = Path(__file__).resolve().parent.parent / "calibration" / "responses"
@@ -28,6 +28,6 @@ def test_full_check_with_recorded_fixture(repo, state_dir, tmp_path):
     run_cli(["mark"], {"session_id": "fx", "cwd": str(repo), "prompt": "Add local Ollama provider support"})
     (repo / "app.py").write_text("def write_file(path, lines):\n    return lines\n")
     p = run_cli(["check"], {"session_id": "fx", "cwd": str(repo), "hook_event_name": "Stop", "stop_hook_active": False,
-                            "last_assistant_message": "Added the provider."}, env={"JEV_REVIEW_FAKE": str(fake)})
+                            "last_assistant_message": "Added the provider."}, env={"TURNJUDGE_FAKE": str(fake)})
     out = json.loads(p.stdout)
     assert out["decision"] == "block" and "task did not ask for" in out["reason"]

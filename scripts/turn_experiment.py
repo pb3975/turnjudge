@@ -1,13 +1,13 @@
 """SPEC 10 experiment: whole-turn state (all files of a commit in one request) vs per-file answers on the labeled set."""
 import json, sys, time
 from pathlib import Path
-from jev_review.calibrate import load_labels
-from jev_review.config import load_config, load_standards
-from jev_review.delta import commit_files, commit_message, file_deltas, repo_language, git, EMPTY_TREE
-from jev_review.redact import redact_diff, redact_text
-from jev_review.questions import questions, NOUL_IDS
-from jev_review.client import JevClient
-from jev_review.policy import Answers
+from turnjudge.calibrate import load_labels
+from turnjudge.config import load_config, load_standards
+from turnjudge.delta import commit_files, commit_message, file_deltas, repo_language, git, EMPTY_TREE
+from turnjudge.redact import redact_diff, redact_text
+from turnjudge.questions import questions, NOUL_IDS
+from turnjudge.client import JevClient
+from turnjudge.policy import Answers
 
 cfg = load_config(None)
 entries = load_labels(Path("calibration/labels.yaml"))

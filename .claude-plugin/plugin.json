@@ -1,6 +1,6 @@
 {
-  "name": "jev-review",
-  "displayName": "jev-review",
+  "name": "turnjudge",
+  "displayName": "turnjudge",
   "version": "0.1.0",
   "description": "End-of-turn semantic review of the agent's delta, judged by TypeSafe's Jev, decided in code. Blocks at most once per turn and never on infrastructure failure.",
   "author": { "name": "Will Metz" },

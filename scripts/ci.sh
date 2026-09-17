@@ -3,4 +3,4 @@ set -euo pipefail
 
 uv sync --quiet
 uv run pytest -q
-uv run jev-review doctor --quiet
+uv run turnjudge doctor --quiet

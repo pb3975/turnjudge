@@ -65,7 +65,7 @@ def snapshot_tree(repo: Path) -> str:
     """Write a tree object for the working tree (respecting .gitignore) without touching the index."""
     real_index = git(repo, "rev-parse", "--git-path", "index").strip()
     real_index_path = Path(real_index) if os.path.isabs(real_index) else repo / real_index
-    with tempfile.TemporaryDirectory(prefix="jev-review-") as td:
+    with tempfile.TemporaryDirectory(prefix="turnjudge-") as td:
         tmp_index = Path(td) / "index"
         if real_index_path.exists():
             tmp_index.write_bytes(real_index_path.read_bytes())

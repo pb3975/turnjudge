@@ -1,6 +1,6 @@
-# Calibration labels for jev-review. One entry per file delta at a commit.
+# Calibration labels for turnjudge. One entry per file delta at a commit.
 #
-# Labeled by the builder agent on 2026-09-16 using the criteria text in src/jev_review/questions.py.
+# Labeled by the builder agent on 2026-09-16 using the criteria text in src/turnjudge/questions.py.
 # Will corrects these; the corrected file is the calibration set (SPEC section 4).
 #
 # Fields:

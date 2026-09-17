@@ -18,14 +18,14 @@ from typing import Any
 
 import yaml
 
-from jev_review.client import JevClient
-from jev_review.config import Config, load_standards
-from jev_review.delta import (GitError, commit_file_delta, commit_files, commit_message, file_deltas, git, list_commits,
+from turnjudge.client import JevClient
+from turnjudge.config import Config, load_standards
+from turnjudge.delta import (GitError, commit_file_delta, commit_files, commit_message, file_deltas, git, list_commits,
                               repo_language, turn_files)
-from jev_review.policy import Answers, DEFAULT_THRESHOLDS, decide_file
-from jev_review.questions import NOUL_IDS, SCORE_LEVELS, SECURITY_IDS, questions, score_top
-from jev_review.redact import trim_identity
-from jev_review.state import build_state
+from turnjudge.policy import Answers, DEFAULT_THRESHOLDS, decide_file
+from turnjudge.questions import NOUL_IDS, SCORE_LEVELS, SECURITY_IDS, questions, score_top
+from turnjudge.redact import trim_identity
+from turnjudge.state import build_state
 
 NOUL_THRESHOLD_KEY = {
     "unnecessary_complexity": "unnecessary_complexity_block",

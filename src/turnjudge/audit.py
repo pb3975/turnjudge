@@ -7,9 +7,9 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from jev_review.config import load_config
-from jev_review.delta import repo_root
-from jev_review.store import Store
+from turnjudge.config import load_config
+from turnjudge.delta import repo_root
+from turnjudge.store import Store
 
 DayStats = dict[str, int]
 
@@ -46,13 +46,13 @@ def run_audit(*, config_path: str | None = None) -> int:
     cwd = Path(os.getcwd())
     repo = repo_root(cwd)
     if repo is None:
-        print("jev-review: not a git repository")
+        print("turnjudge: not a git repository")
         return 1
     cfg = load_config(repo, Path(config_path) if config_path else None)
     store = Store(cfg, repo)
     days = daily_summary(store)
     if not days:
-        print("jev-review: no audit records")
+        print("turnjudge: no audit records")
         return 0
     print(f"{'date':<12} {'checks':>6} {'blocks':>6} {'advise':>6} {'skips':>6} {'in_tokens':>10}")
     for day in sorted(days):

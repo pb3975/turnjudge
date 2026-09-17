@@ -1,7 +1,7 @@
 """One test per redaction rule plus a 50/50 corpus of known secrets and false-positive candidates."""
 import pytest
 
-from jev_review.redact import (ENTROPY_THRESHOLD, cap, deny_reason, redact_diff, scrub_secrets, shannon_entropy,
+from turnjudge.redact import (ENTROPY_THRESHOLD, cap, deny_reason, redact_diff, scrub_secrets, shannon_entropy,
                                trim_identity)
 
 # ---- deny list -------------------------------------------------------------------------------

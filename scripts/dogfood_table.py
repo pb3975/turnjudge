@@ -2,7 +2,7 @@
 import json, sys
 from pathlib import Path
 
-root = Path(sys.argv[1] if len(sys.argv) > 1 else "~/.local/state/jev-review").expanduser()
+root = Path(sys.argv[1] if len(sys.argv) > 1 else "~/.local/state/turnjudge").expanduser()
 marks = {}
 for fb in root.glob("*/feedback.jsonl"):
     for line in fb.read_text().splitlines():

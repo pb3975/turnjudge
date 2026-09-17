@@ -11,5 +11,5 @@ jobs:
       # Live smoke and doctor need TYPESAFE_API_KEY as a repository secret; they are skipped without it.
       - run: uv run pytest -q tests/test_live.py
         env:
-          JEV_REVIEW_LIVE: ${{ secrets.TYPESAFE_API_KEY != '' && '1' || '0' }}
+          TURNJUDGE_LIVE: ${{ secrets.TYPESAFE_API_KEY != '' && '1' || '0' }}
           TYPESAFE_API_KEY: ${{ secrets.TYPESAFE_API_KEY }}

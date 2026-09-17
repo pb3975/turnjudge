@@ -1,10 +1,10 @@
 {
-  "name": "jev-review-local",
+  "name": "turnjudge-local",
   "owner": { "name": "Will Metz" },
-  "description": "Local marketplace for the private jev-review plugin.",
+  "description": "Local marketplace for the private turnjudge plugin.",
   "plugins": [
     {
-      "name": "jev-review",
+      "name": "turnjudge",
       "source": "./",
       "description": "End-of-turn semantic review for coding agents (private)."
     }

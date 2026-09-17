@@ -4,9 +4,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from jev_review.config import Config
-from jev_review.delta import FileDelta
-from jev_review.redact import Redacted, redact_diff, redact_text
+from turnjudge.config import Config
+from turnjudge.delta import FileDelta
+from turnjudge.redact import Redacted, redact_diff, redact_text
 
 
 @dataclass
