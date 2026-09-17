@@ -520,8 +520,13 @@ def _iter_audit_blocks(store: Store):
                 r = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if r.get("outcome") == "block" and not r.get("explain"):
+            if r.get("outcome") == "block" and not r.get("explain") and not _is_fake(r):
                 yield p, r
+
+
+def _is_fake(r: dict) -> bool:
+    """Records produced with JEV_REVIEW_FAKE carry model 'fake'; they are test artifacts, not blocks to mark."""
+    return any(((f.get("response") or {}).get("model") == "fake") for f in r.get("files", []))
 
 
 def run_feedback(session_prefix: str, mark: str, note: str, *, config_path: str | None = None) -> int:
