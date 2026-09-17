@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import os
 import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -79,7 +80,7 @@ def load_config(repo_root: Path | None = None, extra: Path | None = None) -> Con
         deny_paths=list(redact.get("deny_paths", [])),
         extra_patterns=list(redact.get("extra_patterns", [])),
         standards=paths.get("standards", "STANDARDS.md"),
-        state_dir=paths.get("state_dir", "~/.local/state/jev-review"),
+        state_dir=os.environ.get("JEV_REVIEW_STATE_DIR") or paths.get("state_dir", "~/.local/state/jev-review"),
         source_files=sources,
     )
     return cfg

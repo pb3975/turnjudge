@@ -60,7 +60,9 @@ def _matches(path: str, pattern: str) -> bool:
 
 def deny_reason(path: str, extra_deny_paths: list[str] | None = None) -> str | None:
     """Why this file must be withheld entirely, or None if it may be sent (after scrubbing)."""
-    path = path.replace("\\", "/").lstrip("./")
+    path = path.replace("\\", "/")
+    while path.startswith("./"):
+        path = path[2:]
     lower = path.lower()
     for g in DENY_GLOBS:
         if _matches(lower, g.lower()):
@@ -99,7 +101,7 @@ _PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")),
     ("bearer", re.compile(r"(?i)(authorization\s*[:=]\s*['\"]?bearer\s+|\bbearer\s+)([A-Za-z0-9._~+/=-]{16,})")),
     ("basic_auth_header", re.compile(r"(?i)(authorization\s*[:=]\s*['\"]?basic\s+)([A-Za-z0-9+/=]{12,})")),
-    ("url_userinfo", re.compile(r"\b([a-z][a-z0-9+.-]*://)([^/\s:@'\"]+):([^/\s@'\"]+)@")),
+    ("url_userinfo", re.compile(r"\b([a-z][a-z0-9+.-]*://)([^/\s:@'\"]*):([^/\s@'\"]+)@")),
     ("password_assignment", re.compile(
         r"(?i)\b(password|passwd|pwd|secret|client_secret|token|api_key|apikey|access_key|auth_token|private_key)"
         r"\s*[=:]\s*['\"]([^'\"\s]{8,})['\"]")),

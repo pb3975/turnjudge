@@ -197,12 +197,12 @@ def apply_mode(outcome: str, mode: str) -> str:
 
 def render_feedback(verdicts: list[FileVerdict], *, blocking: bool) -> str:
     """Join the fired messages for the outcome level being delivered."""
-    want = "block" if blocking else "advise"
+    # Every fired rule is reported; `blocking` only changes the delivery channel. A block rule that is
+    # downgraded (advise mode, too-large delta, subagent) still names its finding in the advisory.
     lines: list[str] = []
     for v in verdicts:
         for f in v.fired:
-            if f.outcome == want or (blocking and f.outcome == "advise"):
-                lines.append(f.message)
+            lines.append(f.message if blocking or f.outcome == "advise" else f.message.replace("jev-review:", "jev-review (advisory):", 1))
     return "\n".join(lines)
 
 

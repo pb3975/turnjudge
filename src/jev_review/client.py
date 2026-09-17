@@ -137,3 +137,59 @@ class JevClient:
         raw.setdefault("model", r.model)
         return Judgment(raw=raw, error=None, error_kind=None, seconds=time.monotonic() - t0,
                         request_id=getattr(r, "request_id", None))
+
+
+# ---- Offline fake for tests and dry runs ------------------------------------------------------
+
+FAKE_ENV = "JEV_REVIEW_FAKE"
+
+
+class FakeClient:
+    """Stands in for JevClient when JEV_REVIEW_FAKE is set.
+
+    JEV_REVIEW_FAKE=<path.json>   answers come from that file: {"default": {...answers...},
+                                  "by_path": {"src/x.py": {...answers...}}}
+    JEV_REVIEW_FAKE=error:<kind>  every judge() fails with that error kind (auth|rate|timeout|connection)
+    JEV_REVIEW_FAKE=sleep:<sec>   every judge() sleeps that long, then answers "all clear"
+    """
+
+    def __init__(self, spec: str):
+        import json
+        self.spec = spec
+        self.error_kind: str | None = None
+        self.sleep = 0.0
+        self.answers: dict[str, Any] = {"default": {}, "by_path": {}}
+        if spec.startswith("error:"):
+            self.error_kind = spec.split(":", 1)[1]
+        elif spec.startswith("sleep:"):
+            self.sleep = float(spec.split(":", 1)[1])
+        elif spec:
+            self.answers = json.loads(Path(spec).read_text())
+
+    def close(self) -> None:
+        pass
+
+    def __enter__(self) -> "FakeClient":
+        return self
+
+    def __exit__(self, *a) -> None:
+        pass
+
+    def judge(self, state: dict[str, Any], questions: dict[str, Any]) -> Judgment:
+        if self.error_kind:
+            return Judgment(raw=None, error=f"fake {self.error_kind}", error_kind=self.error_kind, seconds=0.0)
+        if self.sleep:
+            time.sleep(self.sleep)
+        path = (state.get("file") or {}).get("path", "")
+        answers = dict(self.answers.get("default", {}))
+        answers.update(self.answers.get("by_path", {}).get(path, {}))
+        return Judgment(raw={"model": "fake", "answers": answers,
+                             "usage": {"input_tokens": 0, "output_tokens": 0, "billing_units": None}},
+                        error=None, error_kind=None, seconds=0.0, request_id="fake")
+
+
+def make_client(*, model: str, timeout: float):
+    spec = os.environ.get(FAKE_ENV)
+    if spec is not None:
+        return FakeClient(spec)
+    return JevClient(model=model, timeout=timeout)
