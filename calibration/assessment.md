@@ -68,3 +68,9 @@ were labeled disproportionate.
 uncalibrated until Will's labels are in):** `swallows_failure_block` 0.85 to 0.60 and an advisory
 band at 0.40; `new_external_surface` moved from block to advise at 0.50; `tests_missing_advise`
 0.30 to 0.45; leave `unrequested_change_block` at 0.80.
+
+**Whole-turn state experiment (SPEC section 10).** Run after Phase 0; details in
+`calibration/experiments/README.md`. Sending every file of a commit in one request lowered
+`swallows_failure` and `unrequested_behavior_change` on the positives (0.72 to 0.36, 0.83 to 0.68)
+without lowering the clean deltas by more, and the 60 KB cap truncated large commits. Per-file
+stays the unit for v1.
