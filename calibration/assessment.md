@@ -74,3 +74,25 @@ band at 0.40; `new_external_surface` moved from block to advise at 0.50; `tests_
 `swallows_failure` and `unrequested_behavior_change` on the positives (0.72 to 0.36, 0.83 to 0.68)
 without lowering the clean deltas by more, and the 60 KB cap truncated large commits. Per-file
 stays the unit for v1.
+
+**Reviewed set, 2026-09-17.** Will chose not to correct labels by hand. At his direction an
+independent reviewer agent, with no access to the original reasoning, re-labeled all 38 entries
+from the criteria text and labeled 19 more file deltas from the 12 agent-written dogfood commits
+on his repos (its notes are in `calibration/review-notes.md`, the original labels in
+`calibration/labels-v1.yaml`). It flipped three verdicts from clean to pushback (a retry path with
+no test, a scheduled lane that exits 0 on an unreadable file, a default provider switch the
+message did not mention), never the reverse, and moved no Score by more than one level. The set
+is now 57 entries, 39 clean and 18 pushback.
+
+On that set: Scores keep MAE 0.28 to 0.46. `swallows_failure` now has five positives; at 0.85 the
+policy misses all five, at 0.50 it catches four with one clean delta flagged (a health endpoint
+that reports false on error), agreement 0.96. That is enough to ship an advisory tier at 0.50,
+which is done in `turnjudge.toml`; the block threshold stays at 0.85 because the one clean delta
+above 0.50 scored 0.69. `unrequested_behavior_change` keeps its two strong positives at 0.80 and
+gains three weak ones the model does not see (0.14 to 0.30), including an unintended regression
+the reviewer counted as unrequested; the false positive is still the truncated-task case.
+`new_external_surface` at 0.85 misses three of four requested surfaces and blocks none, which is
+the right shape for a question that should advise. With the advisory tier the policy now says
+something on 5 of 18 pushback deltas (0.28) and stays silent on 37 of 39 clean ones.
+
+The reviewer's five wording suggestions were tried and reverted (`calibration/experiments/`).

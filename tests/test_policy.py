@@ -29,7 +29,11 @@ def test_security_boundary(q):
 
 def test_swallows_boundary():
     assert rules(verdict(swallows_failure=T["swallows_failure_block"])) == ["swallows_failure"]
-    assert verdict(swallows_failure=T["swallows_failure_block"] - 0.01).outcome == "pass"
+    assert verdict(swallows_failure=T["swallows_failure_block"]).outcome == "block"
+    just_under = verdict(swallows_failure=T["swallows_failure_block"] - 0.01)
+    assert just_under.outcome == "advise" and rules(just_under) == ["swallows_failure"]
+    assert verdict(swallows_failure=T["swallows_failure_advise"]).outcome == "advise"
+    assert verdict(swallows_failure=T["swallows_failure_advise"] - 0.01).outcome == "pass"
 
 
 def test_unrequested_boundary():

@@ -1,21 +1,21 @@
 # Calibration report
 
-Generated 2026-09-16T22:03 from 38 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
+Generated 2026-09-17T08:18 from 57 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
 
-Verdict balance: 28 clean, 10 pushback, 0 unmarked.
+Verdict balance: 39 clean, 18 pushback, 0 unmarked.
 
 ## Noul questions
 
 | question | n | shipped thr | agreement @shipped | Brier | best thr | agreement @best | FP @shipped | FN @shipped |
 |---|---|---|---|---|---|---|---|---|
-| unnecessary_complexity | 38 | 0.80 | 1.00 | 0.048 | 0.70 | 1.00 | 0 | 0 |
-| swallows_failure | 38 | 0.85 | 0.95 | 0.038 | 0.60 | 0.97 | 0 | 2 |
-| unrequested_behavior_change | 38 | 0.80 | 0.97 | 0.066 | 0.50 | 0.97 | 1 | 0 |
-| tests_proportional | 38 | 0.30 | 0.84 | 0.145 | 0.45 | 0.87 | 0 | 6 |
-| introduces_secret | 38 | 0.85 | 1.00 | 0.001 | 0.20 | 1.00 | 0 | 0 |
-| unsafe_input_use | 38 | 0.85 | 0.97 | 0.026 | 0.20 | 0.97 | 0 | 1 |
-| weakens_check | 38 | 0.85 | 0.97 | 0.035 | 0.55 | 0.97 | 0 | 1 |
-| new_external_surface | 38 | 0.85 | 0.89 | 0.044 | 0.20 | 0.97 | 0 | 4 |
+| unnecessary_complexity | 57 | 0.80 | 1.00 | 0.057 | 0.70 | 1.00 | 0 | 0 |
+| swallows_failure | 57 | 0.85 | 0.91 | 0.046 | 0.50 | 0.96 | 0 | 5 |
+| unrequested_behavior_change | 57 | 0.80 | 0.93 | 0.104 | 0.55 | 0.93 | 1 | 3 |
+| tests_proportional | 57 | 0.30 | 0.93 | 0.137 | 0.45 | 0.95 | 0 | 4 |
+| introduces_secret | 57 | 0.85 | 1.00 | 0.001 | 0.20 | 1.00 | 0 | 0 |
+| unsafe_input_use | 57 | 0.85 | 0.98 | 0.029 | 0.75 | 0.98 | 0 | 1 |
+| weakens_check | 57 | 0.85 | 0.98 | 0.025 | 0.55 | 0.98 | 0 | 1 |
+| new_external_surface | 57 | 0.85 | 0.93 | 0.031 | 0.20 | 0.98 | 0 | 4 |
 
 FP = fired above threshold on a delta labeled no. FN = stayed below on a delta labeled yes. For `tests_proportional` the policy fires when p is at or under the threshold, so FP means 'flagged as missing tests when labeled proportional'.
 
@@ -23,11 +23,11 @@ FP = fired above threshold on a delta labeled no. FN = stayed below on a delta l
 
 | question | n | MAE (levels) | within 0.5 | within 1.0 | mean label | mean answer | mean confidence |
 |---|---|---|---|---|---|---|---|
-| behavior_added | 38 | 0.33 | 0.66 | 0.97 | 1.42 | 1.71 | 0.71 |
-| control_flow_added | 38 | 0.36 | 0.66 | 1.00 | 0.97 | 1.30 | 0.82 |
-| abstraction_added | 38 | 0.33 | 0.76 | 0.92 | 0.63 | 0.92 | 0.81 |
-| maintenance_risk | 38 | 0.45 | 0.50 | 1.00 | 0.71 | 0.97 | 0.63 |
-| verbosity | 38 | 0.35 | 0.74 | 1.00 | 0.13 | 0.38 | 0.54 |
+| behavior_added | 57 | 0.29 | 0.72 | 1.00 | 1.40 | 1.62 | 0.74 |
+| control_flow_added | 57 | 0.33 | 0.70 | 1.00 | 0.93 | 1.23 | 0.83 |
+| abstraction_added | 57 | 0.32 | 0.77 | 0.91 | 0.54 | 0.84 | 0.83 |
+| maintenance_risk | 57 | 0.45 | 0.53 | 0.96 | 0.61 | 0.87 | 0.65 |
+| verbosity | 57 | 0.32 | 0.81 | 1.00 | 0.12 | 0.36 | 0.56 |
 
 ## Policy outcome vs verdict
 
@@ -35,11 +35,11 @@ Shipped policy applied to each recorded response, compared with the labeler's ov
 
 | verdict | pass | advise | block |
 |---|---|---|---|
-| clean | 27 | 0 | 1 |
-| pushback | 8 | 0 | 2 |
+| clean | 37 | 1 | 1 |
+| pushback | 13 | 3 | 2 |
 
-Pushback deltas that got at least advise: 0.20.
-Clean deltas that passed silently: 0.96. Clean deltas blocked: 1.
+Pushback deltas that got at least advise: 0.28.
+Clean deltas that passed silently: 0.95. Clean deltas blocked: 1.
 
 ## Per-delta answers
 
@@ -50,7 +50,7 @@ Clean deltas that passed silently: 0.96. Clean deltas blocked: 1.
 | nests | 00a4e13 | internal/agent/harness.go | clean | pass | - | 0.18 | 0.06 | 0.09 | 0.60 | 0.02 | 0.04 | 0.51 | 0.02 | 1.04 | 0.68 | 0.10 | 0.69 | 0.20 |
 | nests | 00a4e13 | internal/fleet/command.go | clean | pass | - | 0.22 | 0.05 | 0.18 | 0.69 | 0.02 | 0.04 | 0.14 | 0.02 | 1.05 | 0.92 | 1.07 | 0.67 | 0.30 |
 | nests | fcedc8f | internal/network/egress.go | clean | pass | - | 0.09 | 0.03 | 0.09 | 0.72 | 0.02 | 0.03 | 0.03 | 0.02 | 1.05 | 1.20 | 0.00 | 0.06 | 0.04 |
-| nests | b7fc601 | internal/reconcile/reconcile.go | clean | pass | - | 0.28 | 0.16 | 0.40 | 0.15 | 0.02 | 0.04 | 0.14 | 0.06 | 1.73 | 1.84 | 0.97 | 1.74 | 0.43 |
+| nests | b7fc601 | internal/reconcile/reconcile.go | pushback | pass | - | 0.28 | 0.16 | 0.40 | 0.15 | 0.02 | 0.04 | 0.14 | 0.06 | 1.73 | 1.84 | 0.97 | 1.74 | 0.43 |
 | nests | 72977cb | nal/runtime/firecracker/firecracker.go | clean | pass | - | 0.18 | 0.22 | 0.16 | 0.48 | 0.02 | 0.19 | 0.06 | 0.04 | 1.40 | 1.30 | 1.03 | 1.05 | 0.17 |
 | nests | af5f5dd | nal/runtime/firecracker/firecracker.go | clean | pass | - | 0.24 | 0.08 | 0.15 | 0.76 | 0.02 | 0.06 | 0.09 | 0.04 | 1.01 | 1.12 | 1.00 | 0.29 | 0.13 |
 | nests | 78e4df2 | nal/runtime/firecracker/firecracker.go | clean | pass | - | 0.15 | 0.07 | 0.28 | 0.31 | 0.02 | 0.07 | 0.06 | 0.04 | 1.04 | 1.09 | 0.00 | 0.52 | 0.12 |
@@ -63,7 +63,7 @@ Clean deltas that passed silently: 0.96. Clean deltas blocked: 1.
 | nests | 082e90b | internal/agent/harness.go | pushback | pass | - | 0.09 | 0.06 | 0.06 | 0.76 | 0.02 | 0.04 | 0.03 | 0.02 | 1.08 | 1.04 | 0.00 | 0.50 | 0.14 |
 | nests | 082e90b | internal/cli/agent.go | pushback | pass | - | 0.22 | 0.16 | 0.15 | 0.73 | 0.02 | 0.07 | 0.08 | 0.04 | 2.51 | 1.89 | 1.92 | 1.64 | 0.54 |
 | agentic-sw-factory | 1d7cf9a | apps/server/src/audit/write.ts | clean | pass | - | 0.18 | 0.12 | 0.18 | 0.74 | 0.02 | 0.09 | 0.05 | 0.03 | 2.24 | 1.99 | 1.50 | 1.35 | 0.62 |
-| agentic-sw-factory | 1d7cf9a | apps/server/src/factory/refresh.ts | clean | pass | - | 0.20 | 0.59 | 0.13 | 0.67 | 0.02 | 0.08 | 0.06 | 0.03 | 2.02 | 2.00 | 1.19 | 0.95 | 0.56 |
+| agentic-sw-factory | 1d7cf9a | apps/server/src/factory/refresh.ts | pushback | advise | swallows_failure | 0.20 | 0.59 | 0.13 | 0.67 | 0.02 | 0.08 | 0.06 | 0.03 | 2.02 | 2.00 | 1.19 | 0.95 | 0.56 |
 | agentic-sw-factory | 129ed53 | apps/server/src/factory/refresh.ts | clean | pass | - | 0.13 | 0.05 | 0.13 | 0.37 | 0.02 | 0.08 | 0.04 | 0.02 | 1.06 | 0.00 | 0.00 | 0.19 | 0.35 |
 | agentic-sw-factory | 731bf5f | apps/server/src/factory/gate.ts | clean | pass | - | 0.14 | 0.10 | 0.07 | 0.85 | 0.02 | 0.05 | 0.07 | 0.02 | 1.11 | 0.71 | 0.02 | 0.62 | 0.12 |
 | agentic-sw-factory | 731bf5f | pps/server/src/services/Maintenance.ts | clean | pass | - | 0.16 | 0.20 | 0.09 | 0.56 | 0.02 | 0.08 | 0.41 | 0.02 | 1.75 | 1.76 | 0.38 | 0.90 | 0.18 |
@@ -75,19 +75,38 @@ Clean deltas that passed silently: 0.96. Clean deltas blocked: 1.
 | agentic-sw-factory | 3218ec0 | apps/server/src/http/static.ts | pushback | pass | - | 0.17 | 0.48 | 0.09 | 0.48 | 0.03 | 0.09 | 0.06 | 0.07 | 2.11 | 2.07 | 1.83 | 1.17 | 0.56 |
 | qb-harness | 57a64d1 | src/agentlab/agent.py | clean | pass | - | 0.25 | 0.08 | 0.44 | 0.62 | 0.18 | 0.12 | 0.07 | 0.48 | 2.13 | 1.53 | 1.45 | 1.07 | 0.35 |
 | qb-harness | 57a64d1 | src/agentlab/tools.py | pushback | block | unrequested_behavior_change | 0.34 | 0.26 | 0.83 | 0.46 | 0.02 | 0.65 | 0.05 | 0.05 | 1.48 | 0.98 | 0.09 | 0.60 | 0.80 |
-| qb-harness | 57a64d1 | src/agentlab/cli.py | clean | pass | - | 0.23 | 0.10 | 0.30 | 0.52 | 0.02 | 0.05 | 0.05 | 0.13 | 2.22 | 0.67 | 0.39 | 0.94 | 0.22 |
+| qb-harness | 57a64d1 | src/agentlab/cli.py | pushback | pass | - | 0.23 | 0.10 | 0.30 | 0.52 | 0.02 | 0.05 | 0.05 | 0.13 | 2.22 | 0.67 | 0.39 | 0.94 | 0.22 |
 | billy-blog | 34ad520 | src/lib/server/runtime.ts | clean | pass | - | 0.19 | 0.12 | 0.07 | 0.25 | 0.02 | 0.04 | 0.05 | 0.04 | 1.40 | 1.14 | 0.98 | 1.29 | 0.48 |
 | billy-blog | 34ad520 | src/lib/server/db.ts | clean | pass | - | 0.10 | 0.09 | 0.07 | 0.41 | 0.02 | 0.06 | 0.07 | 0.05 | 1.00 | 0.10 | 0.00 | 0.16 | 0.01 |
 | billy-blog | 34ad520 | scripts/smoke.sh | clean | block | unrequested_behavior_change | 0.19 | 0.15 | 0.80 | 0.71 | 0.03 | 0.08 | 0.11 | 0.11 | 1.26 | 1.44 | 0.01 | 0.60 | 0.58 |
 | nests | 4060b18 | internal/agent/isolation.go | pushback | pass | - | 0.16 | 0.46 | 0.18 | 0.77 | 0.02 | 0.07 | 0.06 | 0.16 | 2.53 | 2.01 | 1.15 | 1.64 | 0.66 |
 | nests | d0ea812 | internal/agent/linux.go | pushback | pass | - | 0.20 | 0.11 | 0.18 | 0.61 | 0.03 | 0.06 | 0.05 | 0.45 | 2.57 | 1.96 | 1.73 | 1.85 | 0.58 |
-| agentic-sw-factory | c083057 | apps/server/src/factory/paused.ts | pushback | block | unrequested_behavior_change | 0.68 | 0.72 | 0.86 | 0.32 | 0.02 | 0.06 | 0.05 | 0.05 | 1.98 | 1.15 | 1.51 | 0.60 | 0.88 |
+| agentic-sw-factory | c083057 | apps/server/src/factory/paused.ts | pushback | block | swallows_failure,unrequested_behavior_change | 0.68 | 0.72 | 0.86 | 0.32 | 0.02 | 0.06 | 0.05 | 0.05 | 1.98 | 1.15 | 1.51 | 0.60 | 0.88 |
 | nests | 020cedf | internal/agent/guest_harness.go | pushback | pass | - | 0.16 | 0.17 | 0.22 | 0.75 | 0.02 | 0.06 | 0.05 | 0.06 | 2.88 | 1.96 | 2.89 | 1.53 | 0.78 |
+| nests | 707d7be | internal/config/config.go | pushback | pass | - | 0.27 | 0.14 | 0.25 | 0.61 | 0.02 | 0.11 | 0.03 | 0.02 | 1.87 | 1.90 | 1.25 | 0.91 | 0.72 |
+| nests | 707d7be | internal/cli/commands.go | clean | pass | - | 0.26 | 0.13 | 0.41 | 0.62 | 0.02 | 0.07 | 0.04 | 0.03 | 1.59 | 1.82 | 0.35 | 0.87 | 0.39 |
+| nests | 707d7be | internal/cli/app.go | clean | pass | - | 0.18 | 0.08 | 0.26 | 0.53 | 0.02 | 0.06 | 0.04 | 0.03 | 1.38 | 1.00 | 0.01 | 0.71 | 0.08 |
+| nests | 707d7be | internal/cli/ops.go | clean | pass | - | 0.22 | 0.46 | 0.51 | 0.58 | 0.02 | 0.07 | 0.04 | 0.03 | 1.40 | 1.00 | 0.05 | 0.70 | 0.36 |
+| nests | 707d7be | internal/cli/agent.go | clean | pass | - | 0.36 | 0.09 | 0.49 | 0.59 | 0.02 | 0.05 | 0.04 | 0.03 | 0.17 | 0.01 | 0.40 | 0.59 | 0.41 |
+| nests | 707d7be | internal/cli/lifecycle.go | clean | pass | - | 0.29 | 0.07 | 0.50 | 0.71 | 0.02 | 0.06 | 0.04 | 0.03 | 0.13 | 0.01 | 0.16 | 0.48 | 0.24 |
+| nests | d5e32a4 | internal/cli/agent.go | pushback | pass | - | 0.19 | 0.25 | 0.14 | 0.66 | 0.02 | 0.03 | 0.05 | 0.04 | 1.21 | 1.48 | 1.00 | 0.52 | 0.60 |
+| nests | dc6a256 | internal/redact/redact.go | clean | pass | - | 0.06 | 0.03 | 0.08 | 0.55 | 0.03 | 0.02 | 0.02 | 0.02 | 1.68 | 0.01 | 0.00 | 0.01 | 0.03 |
+| agentic-sw-factory | 066a74d | apps/server/src/audit/run.ts | clean | pass | - | 0.28 | 0.06 | 0.20 | 0.69 | 0.02 | 0.04 | 0.04 | 0.02 | 1.96 | 1.78 | 1.05 | 0.73 | 0.41 |
+| agentic-sw-factory | 066a74d | apps/server/src/cli.ts | clean | pass | - | 0.24 | 0.09 | 0.17 | 0.74 | 0.02 | 0.05 | 0.04 | 0.03 | 2.00 | 0.22 | 0.95 | 0.52 | 0.08 |
+| agentic-sw-factory | 3c72b70 | apps/server/src/audit/audit.ts | pushback | pass | - | 0.43 | 0.20 | 0.34 | 0.60 | 0.02 | 0.03 | 0.06 | 0.07 | 1.25 | 1.91 | 1.03 | 1.01 | 0.69 |
+| agentic-sw-factory | e34a900 | s/server/src/services/SourceFetcher.ts | clean | pass | - | 0.27 | 0.08 | 0.32 | 0.72 | 0.02 | 0.03 | 0.08 | 0.04 | 1.71 | 1.97 | 1.06 | 1.10 | 0.40 |
+| qb-harness | ab2493f | src/agentlab/tools.py | clean | pass | - | 0.29 | 0.14 | 0.28 | 0.74 | 0.02 | 0.70 | 0.11 | 0.02 | 1.64 | 1.77 | 1.00 | 0.88 | 0.19 |
+| qb-harness | e39c77b | src/agentlab/tools.py | clean | pass | - | 0.16 | 0.14 | 0.17 | 0.65 | 0.02 | 0.28 | 0.05 | 0.02 | 1.02 | 0.32 | 0.01 | 0.08 | 0.23 |
+| qb-harness | 66776bc | src/agentlab/agent.py | clean | pass | - | 0.33 | 0.09 | 0.23 | 0.58 | 0.02 | 0.18 | 0.03 | 0.03 | 1.96 | 0.09 | 1.00 | 0.42 | 0.17 |
+| billy-blog | 53709cf | src/lib/server/thumbs.ts | pushback | advise | swallows_failure | 0.30 | 0.58 | 0.21 | 0.60 | 0.02 | 0.13 | 0.12 | 0.03 | 1.22 | 1.95 | 0.03 | 1.30 | 0.34 |
+| billy-blog | 302960c | src/lib/server/health.ts | clean | advise | swallows_failure | 0.32 | 0.69 | 0.17 | 0.69 | 0.02 | 0.06 | 0.03 | 0.17 | 2.02 | 1.36 | 1.25 | 0.66 | 0.33 |
+| billy-blog | 302960c | src/routes/api/health/+server.ts | clean | pass | - | 0.28 | 0.27 | 0.16 | 0.72 | 0.03 | 0.04 | 0.03 | 0.14 | 2.00 | 0.84 | 1.17 | 0.44 | 0.14 |
+| billy-blog | 673c05e | src/lib/server/ingest.ts | pushback | advise | swallows_failure | 0.27 | 0.57 | 0.19 | 0.65 | 0.02 | 0.09 | 0.06 | 0.03 | 1.03 | 1.25 | 1.00 | 0.76 | 0.32 |
 
 ## Cost and latency
 
-- Requests: 38; input tokens: 237478; output tokens: 8816; billing_units: not returned by the API (SDK 0.6.0 note).
-- Per-request latency: median 0.19 s, max 0.53 s, mean input tokens 6249.
+- Requests: 57; input tokens: 334948; output tokens: 13224; billing_units: not returned by the API (SDK 0.6.0 note).
+- Per-request latency: median 0.19 s, max 0.55 s, mean input tokens 5876.
 - 6-file wall-time test: {'files': 6, 'wall_seconds': 0.52, 'per_request_seconds': [0.47, 0.52, 0.45, 0.43, 0.41, 0.41], 'errors': 0, 'measured_at': '2026-09-16T21:39:03'}
 
 ## Assessment

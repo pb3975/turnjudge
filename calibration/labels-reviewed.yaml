@@ -465,7 +465,7 @@
   note: Streams the body and cancels the reader past 2 MB, surfacing a new too-large reason instead of silently truncating. The exported constant is renamed from chars to bytes and every reference in the repo is updated. Tested with a body one byte over the cap.
 
 - repo: ~/Work/qb-harness
-  sha: ab2493f6dc
+  sha: 4abf337094
   file: src/agentlab/tools.py
   verdict: clean
   labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 1, maintenance_risk: 0, verbosity: 0,

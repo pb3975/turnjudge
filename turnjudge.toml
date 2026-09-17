@@ -16,6 +16,7 @@ model = "jev-latest"
 # Every value here is uncalibrated until calibration/report.md says otherwise.
 security_block = 0.85
 swallows_failure_block = 0.85
+swallows_failure_advise = 0.50   # calibrated 2026-09-17 on 57 reviewed deltas: 4 of 5 positives, 1 clean flagged
 unrequested_change_block = 0.80
 unnecessary_complexity_block = 0.80
 complexity_score_gate = 2.0       # control_flow_added or abstraction_added must reach this

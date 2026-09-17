@@ -16,6 +16,7 @@ OUTCOME_RANK = {"pass": 0, "advise": 1, "block": 2}
 DEFAULT_THRESHOLDS: dict[str, float] = {
     "security_block": 0.85,
     "swallows_failure_block": 0.85,
+    "swallows_failure_advise": 0.50,
     "unrequested_change_block": 0.80,
     "unnecessary_complexity_block": 0.80,
     "complexity_score_gate": 2.0,
@@ -99,6 +100,8 @@ T_SECURITY = {
 }
 T_SWALLOWS = ("turnjudge: `{path}` appears to hide or swallow a failure that previously surfaced (p={p:.2f}). "
               "Let the failure surface again, or explain in your reply why silencing it is correct here.")
+T_SWALLOWS_ADVISE = ("turnjudge (advisory): `{path}` may default away or silence a failure (p={p:.2f}). If a caller could "
+                     "no longer tell that something went wrong, say so in your reply or narrow the handling to the case the task named.")
 T_UNREQUESTED = ("turnjudge: `{path}` appears to change behavior that the task did not ask for and your summary does not "
                  "mention (p={p:.2f}). Task: \"{task}\". Either revert the extra change or state it explicitly in your reply.")
 T_COMPLEXITY = ("turnjudge: `{path}` adds {what} (control flow {cf}, abstraction {ab}) for a change judged as {beh_word} "
@@ -135,6 +138,8 @@ def decide_file(path: str, ans: Answers, thresholds: dict[str, float] | None = N
     p = ans.noul("swallows_failure")
     if p is not None and p >= t["swallows_failure_block"]:
         fire("swallows_failure", "block", T_SWALLOWS.format(path=path, p=p))
+    elif p is not None and p >= t["swallows_failure_advise"]:
+        fire("swallows_failure", "advise", T_SWALLOWS_ADVISE.format(path=path, p=p))
 
     p = ans.noul("unrequested_behavior_change")
     if p is not None and p >= t["unrequested_change_block"]:
