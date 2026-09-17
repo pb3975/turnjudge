@@ -227,3 +227,16 @@ def test_explain_prints_table_and_does_not_block(repo, state_dir, block_fake):
     assert p.returncode == 0 and "turn outcome: block" in p.stdout and "decision" not in p.stdout
     # explain does not consume the block-once budget
     assert json.loads(check(repo, block_fake).stdout)["decision"] == "block"
+
+
+def test_explain_range_reviews_commits_not_working_tree(repo, state_dir, block_fake):
+    from tests.conftest import git
+    (repo / "app.py").write_text("def main():\n    return 2\n")
+    git(repo, "add", "-A"); git(repo, "commit", "-q", "-m", "bump return value")
+    (repo / "app.py").write_text("def main():\n    return 3\n")  # uncommitted; must not be reviewed
+    p = run_cli(["explain", "--range", "HEAD~1..HEAD"], env={"JEV_REVIEW_FAKE": block_fake}, cwd=repo)
+    assert p.returncode == 0 and "turn outcome: block" in p.stdout
+    rec = json.loads(list(state_dir.glob("*/audit/*.jsonl"))[0].read_text().splitlines()[-1])
+    assert rec["files"][0]["state"]["task"].startswith("bump return value")
+    assert "+    return 2" in rec["files"][0]["state"]["diff"] and "return 3" not in rec["files"][0]["state"]["diff"]
+    assert run_cli(["explain", "--range", "nodots"], env={"JEV_REVIEW_FAKE": block_fake}, cwd=repo).returncode == 1

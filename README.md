@@ -60,7 +60,14 @@ down, slow, or the key is missing, the hook exits 0 with a one-line notice. If t
 fails, the error goes to `~/.local/state/jev-review/<project>/errors.log`, never to the agent.
 
 `/jev-review` in a session runs the same `check` path in explain mode and prints the per-file answer
-table and fired rules.
+table and fired rules. To review a PR or any commit range instead of the working tree:
+
+```sh
+git fetch origin pull/8/head:pr8
+jev-review explain --range "$(git merge-base main pr8)..pr8"
+```
+
+The commit subjects and bodies in the range stand in for the task.
 
 ## What leaves the machine
 

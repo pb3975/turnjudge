@@ -145,6 +145,52 @@ with unnecessary_complexity 0.16, which is the intended reading: the task asked 
 "clean up" task scored unrequested_behavior_change 0.23 on a pure refactor.
 Regenerate the table with `uv run python scripts/dogfood_table.py`.
 
+## PR reviews (2026-09-17, `explain --range`, live Jev)
+
+Will approved testing across his repos on 2026-09-17. Both PRs were fetched into scratch clones
+(his working trees untouched) and reviewed as a commit range with the commit messages as the task.
+
+agentic-sw-factory PR 8 "Add current software factory case studies and rollout model" (8 commits,
+7 content files): outcome pass. Every code question sits near zero on YAML and Markdown, which
+answers SPEC section 10's last question for content-only turns: the question set does no harm
+there but has nothing to say; a reduced set is not needed, skipping is optional.
+
+```
+file                                     out         beh   cflow   abstr   maint    verb   unnec   swall   unreq   tests  secret   input  weaken extsurf
+content/course.yaml                      pass       1.36    0.00    0.00    0.09    0.03    0.11    0.04    0.10    0.74    0.04    0.03    0.02    0.03
+/08-openai-agentic-factory-case-study.md pass       1.97    0.00    0.00    0.05    0.08    0.10    0.04    0.08    0.86    0.03    0.03    0.02    0.03
+content/modules/02-anatomy/module.yaml   pass       2.04    0.00    0.00    0.10    0.05    0.12    0.04    0.08    0.79    0.03    0.03    0.02    0.03
+ns/lessons/07-crawl-walk-run-adoption.md pass       2.08    0.00    0.01    0.05    0.08    0.11    0.04    0.11    0.86    0.02    0.02    0.02    0.03
+ontent/modules/07-operations/module.yaml pass       1.74    0.00    0.00    0.05    0.02    0.11    0.03    0.09    0.79    0.02    0.02    0.02    0.03
+eer-openai-agentic-software-factory.yaml pass       1.75    0.00    0.01    0.04    0.13    0.10    0.05    0.07    0.79    0.05    0.02    0.02    0.03
+arp-crawl-walk-run-software-factory.yaml pass       1.88    0.00    0.05    0.03    0.06    0.10    0.05    0.09    0.78    0.04    0.02    0.02    0.03
+
+turn outcome: pass
+audit: /home/wam/.local/state/jev-review/asf-99a3d97b/audit/2026-09-17.jsonl
+```
+
+nests PR 95 "Publish verified fleet bundles and verify Host downloads" (2 commits, 10 files: two
+workflows, deploy script, CloudFormation template, a Python manifest tool with tests, a Go test):
+outcome pass. `unrequested_behavior_change` sits at 0.5 to 0.7 on the workflow and shell files
+because the two commit subjects describe the whole PR, not each file; nothing crossed a threshold.
+
+```
+file                                     out         beh   cflow   abstr   maint    verb   unnec   swall   unreq   tests  secret   input  weaken extsurf
+.github/workflows/fleet-release.yml      pass       2.76    1.00    0.26    1.38    0.68    0.35    0.17    0.65    0.51    0.04    0.17    0.08    0.62
+.github/workflows/image-pipeline.yml     pass       2.09    1.00    0.27    1.07    0.52    0.29    0.09    0.49    0.38    0.04    0.27    0.05    0.18
+.gitignore                               pass       0.34    0.01    0.01    0.03    0.78    0.24    0.08    0.52    0.83    0.03    0.09    0.04    0.10
+docs/operations/fleet-releases.md        pass       0.68    0.02    0.07    0.39    0.46    0.24    0.13    0.34    0.81    0.04    0.13    0.13    0.12
+infra/aws-m4/deploy.sh                   pass       2.41    1.52    0.05    1.40    0.42    0.32    0.15    0.59    0.50    0.03    0.13    0.17    0.10
+infra/aws-m4/template.yaml               pass       2.45    0.83    0.24    0.91    0.66    0.27    0.12    0.51    0.66    0.04    0.12    0.05    0.12
+ternal/iamcheck/release_template_test.go pass       0.79    1.98    0.31    0.26    0.32    0.21    0.08    0.22    0.92    0.03    0.08    0.06    0.06
+scripts/fleet-release/manifest.py        pass       2.44    1.99    1.01    0.91    0.69    0.27    0.09    0.55    0.76    0.03    0.25    0.07    0.04
+scripts/fleet-release/manifest_test.py   pass       1.01    1.28    1.00    0.20    0.48    0.21    0.10    0.42    0.93    0.03    0.09    0.07    0.05
+scripts/fleet-release/package.sh         pass       2.58    1.74    0.19    1.58    0.87    0.36    0.12    0.70    0.40    0.04    0.19    0.10    0.11
+
+turn outcome: pass
+audit: /home/wam/.local/state/jev-review/nests-1a3dfcc4/audit/2026-09-17.jsonl
+```
+
 ## Evidence log
 
 Command outputs pasted at the time of the last update.
