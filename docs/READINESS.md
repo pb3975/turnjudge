@@ -10,6 +10,18 @@ uv run jev-review doctor               # setup and one live request
 uv run jev-review feedback x list      # blocks and their marks
 ```
 
+## Summary
+
+| # | Criterion | Status | Needs Will? |
+|---|---|---|---|
+| 1 | Tests pass locally and in CI | locally yes; no CI service (no remote) | decision: accept local run, or add a remote |
+| 2 | 40 labeled deltas, 3 repos, half pushback, labeled by Will | 38 deltas, 4 repos, 10 pushback, labeled by the builder | yes: correct labels, add pushback cases |
+| 3 | Agreement and MAE targets | Scores and security met on the builder set; unnecessary_complexity has no positives; swallows_failure misses at 0.85 | yes: follows from 2 |
+| 4 | 10 sessions, 7 of 10 blocks helpful, no stall | 15 sessions, no stall, 0 blocks to mark | yes: sessions on his repos, marks |
+| 5 | doctor on a fresh machine from the README | passes here; fresh machine untried | yes, or a scratch VM |
+| 6 | Redaction corpus clean; audit log reviewed by Will | corpus clean; builder scan clean | yes: review the audit logs |
+| 7 | Plugin installs; /jev-review works | yes | no |
+
 ## 1. All tests in section 6 pass in CI and locally
 
 - [x] Locally: `uv run pytest -q` passes (see the run recorded under "Evidence log" below).
@@ -57,9 +69,15 @@ count until criterion 2 is met.
 
 ## 4. Ten real agent sessions on two of Will's repos, blocks marked, 7 of 10 helpful, no stall
 
-- [ ] Not met. The hooks are enabled in this repo's `.claude/settings.json` and every builder
-  session on the repo is audited (see "Dogfood sessions" below). Sessions on Will's own repos and
-  the helpful/unhelpful marks are his to run and give:
+- [ ] Not met. 15 headless agent sessions ran with the hooks live on 2026-09-16: 5 in this repo
+  (through `.claude/settings.json`) and 10 in a scratch clone of `~/Work/qb-harness` (through the
+  installed plugin at local scope; Will's own working tree was not touched). Every check completed
+  in under 0.9 s and no session stalled. Outcomes: 11 pass, 4 advisories (verbosity once,
+  tests_proportional three times), 0 blocks. With no blocks there is nothing to mark, so the
+  7-of-10 test cannot be evaluated yet. The closest call: the grep task "skip binary files and
+  unreadable directories quietly" scored `swallows_failure` 0.84 against a block threshold of 0.85;
+  the calibration assessment's suggested 0.60 would have blocked it. Whether that block would have
+  been helpful is Will's call. Sessions on Will's own repos and the marks are his to run and give:
   `claude plugin install jev-review@jev-review-local` (after `claude plugin marketplace add
   ~/Work/jev-review`), work as usual, then `jev-review feedback <session-prefix>/<turn>
   helpful|unhelpful` for each block. `jev-review feedback x list` shows the blocks.
@@ -98,9 +116,70 @@ count until criterion 2 is met.
 
 Filled in as sessions run. Each row is one audited session on this repo.
 
-| date | session | turns checked | blocks | advisories | helpful? | note |
-|---|---|---|---|---|---|---|
+| date | repo | session | checks | blocks | advisories | skipped | max seconds | fired rules | block marks |
+|---|---|---|---|---|---|---|---|---|---|
+| 2026-09-17 | qb | 17dd0573 | 1 | 0 | 1 | 0 | 0.67 | tests_proportional | - |
+| 2026-09-17 | qb | 256efb75 | 1 | 0 | 0 | 0 | 0.59 | - | - |
+| 2026-09-17 | jev-review | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
+| 2026-09-17 | qb | 38e774a3 | 1 | 0 | 1 | 0 | 0.56 | tests_proportional | - |
+| 2026-09-17 | qb | 402335ab | 1 | 0 | 0 | 0 | 0.46 | - | - |
+| 2026-09-17 | jev-review | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
+| 2026-09-17 | qb | 4ff943e4 | 1 | 0 | 0 | 0 | 0.46 | - | - |
+| 2026-09-17 | qb | 6a8cf403 | 1 | 0 | 0 | 0 | 0.53 | - | - |
+| 2026-09-17 | qb | 90b4c816 | 1 | 0 | 0 | 0 | 0.52 | - | - |
+| 2026-09-17 | jev-review | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
+| 2026-09-17 | qb | c9d3b509 | 1 | 0 | 0 | 0 | 0.59 | - | - |
+| 2026-09-17 | jev-review | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
+| 2026-09-17 | qb | eb806de3 | 1 | 0 | 0 | 0 | 0.73 | - | - |
+| 2026-09-17 | jev-review | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
+| 2026-09-17 | qb | fee4d00b | 1 | 0 | 0 | 0 | 0.83 | - | - |
+
+15 sessions, 15 checks, 0 blocks, 3 advisories, 0 skipped, max seconds 0.83
+
+Tasks given to the agent, in order: this repo: percentile tests; scripts/ci.sh; audit subcommand;
+robust Store.audit; Azure and Twilio redaction patterns. qb-harness clone: shell timeout; retry
+once on connection error; --quiet flag; refuse escaping paths; pluggable provider registry;
+turn-limit flag instead of raise; never crash when Ollama is down; grep skips unreadable dirs
+quietly; agentlab.toml defaults; "clean up agent.py". The registry task scored abstraction 3.0
+with unnecessary_complexity 0.16, which is the intended reading: the task asked for it. The
+"clean up" task scored unrequested_behavior_change 0.23 on a pure refactor.
+Regenerate the table with `uv run python scripts/dogfood_table.py`.
 
 ## Evidence log
 
 Command outputs pasted at the time of the last update.
+
+```
+$ uv run pytest -q   (2026-09-16T22:03:41-05:00)
+........................................................................ [ 97%]
+.....                                                                    [100%]
+
+$ JEV_REVIEW_LIVE=1 uv run pytest -q tests/test_live.py
+.                                                                        [100%]
+
+$ uv run jev-review doctor
+ok   key        key file /home/wam/.config/jev-review/key (mode 0600)
+ok   git        git on PATH
+ok   repo       repo jev-review
+ok   standards  standards: /home/wam/Work/jev-review/STANDARDS.md
+ok   state      state dir /home/wam/.local/state/jev-review
+ok   config     config: /home/wam/Work/jev-review/jev-review.toml
+ok   mode       mode=block subagents=advise timeout=45.0s model=jev-latest
+ok   api        reachable (0.34s, model jev-1.13.0)
+
+all checks passed.
+
+$ uv run jev-review calibrate run (summary lines)
+Generated 2026-09-16T22:03 from 38 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
+Verdict balance: 28 clean, 10 pushback, 0 unmarked.
+| behavior_added | 38 | 0.33 | 0.66 | 0.97 | 1.42 | 1.71 | 0.71 |
+| verbosity | 38 | 0.35 | 0.74 | 1.00 | 0.13 | 0.38 | 0.54 |
+| clean | 27 | 0 | 1 |
+| pushback | 8 | 0 | 2 |
+- 6-file wall-time test: {'files': 6, 'wall_seconds': 0.52, 'per_request_seconds': [0.47, 0.52, 0.45, 0.43, 0.41, 0.41], 'errors': 0, 'measured_at': '2026-09-16T21:39:03'}
+
+$ bash scripts/ci.sh; echo exit $?
+........................................................................ [ 97%]
+.....                                                                    [100%]
+exit 0
+```

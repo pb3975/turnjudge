@@ -1,6 +1,6 @@
 # Calibration report
 
-Generated 2026-09-16T21:58 from 38 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
+Generated 2026-09-16T22:03 from 38 labeled file deltas across 4 repos (agentic-sw-factory, billy-blog, nests, qb-harness). Labels: `calibration/labels.yaml`. Responses: `calibration/responses/`.
 
 Verdict balance: 28 clean, 10 pushback, 0 unmarked.
 
