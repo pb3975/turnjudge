@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PROJECT_DIR}", "jev-review", "doctor", "--quiet"], "timeout": 15 } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PROJECT_DIR}", "jev-review", "mark"], "timeout": 10 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PROJECT_DIR}", "jev-review", "check"], "timeout": 60, "statusMessage": "jev-review is judging this turn's delta" } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PROJECT_DIR}", "jev-review", "check"], "timeout": 60 } ] }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "name": "jev-review-local",
+  "owner": { "name": "Will Metz" },
+  "description": "Local marketplace for the private jev-review plugin.",
+  "plugins": [
+    {
+      "name": "jev-review",
+      "source": "./",
+      "description": "End-of-turn semantic review for coding agents (private)."
+    }
+  ]
+}

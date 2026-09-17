@@ -1,0 +1,17 @@
+{
+  "description": "jev-review: snapshot the tree on each prompt, review the turn's delta on Stop, verify setup on SessionStart. Every command exits 0; a block is issued at most once per turn.",
+  "hooks": {
+    "SessionStart": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PLUGIN_ROOT}", "jev-review", "doctor", "--quiet"], "timeout": 15 } ] }
+    ],
+    "UserPromptSubmit": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PLUGIN_ROOT}", "jev-review", "mark"], "timeout": 10 } ] }
+    ],
+    "Stop": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PLUGIN_ROOT}", "jev-review", "check"], "timeout": 60, "statusMessage": "jev-review is judging this turn's delta" } ] }
+    ],
+    "SubagentStop": [
+      { "hooks": [ { "type": "command", "command": "uv", "args": ["run", "--quiet", "--project", "${CLAUDE_PLUGIN_ROOT}", "jev-review", "check"], "timeout": 60 } ] }
+    ]
+  }
+}
