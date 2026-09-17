@@ -1,0 +1,27 @@
+[project]
+name = "jev-review"
+version = "0.1.0"
+description = "End-of-turn semantic review for coding agents, judged by TypeSafe's System One model (Jev), decided in code."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Proprietary" }
+authors = [{ name = "Will Metz" }]
+dependencies = [
+    "typesafe-sdk>=0.6.0",
+    "msgspec>=0.19",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+jev-review = "jev_review.cli:main"
+
+[dependency-groups]
+dev = ["pytest>=8.0"]
+
+[build-system]
+requires = ["uv_build>=0.12.10,<0.13.0"]
+build-backend = "uv_build"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

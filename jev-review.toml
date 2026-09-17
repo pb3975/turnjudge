@@ -1,0 +1,35 @@
+# jev-review default configuration. Project overrides live in <repo>/.jev-review.toml.
+
+[review]
+mode = "block"            # block | advise | off
+subagents = "advise"      # SubagentStop hooks are advisory unless set to "block"
+max_files = 12            # deltas over this many files are advisory only
+max_total_bytes = 60000   # total redacted diff bytes; over this is advisory only
+per_file_bytes = 12000    # per-file redacted diff cap; larger diffs are truncated
+prompt_bytes = 2000       # task prompt cap
+summary_bytes = 1000      # last_assistant_message cap
+timeout_seconds = 45      # wall-clock budget for the whole check; over it, skip
+workers = 6               # requests in flight
+model = "jev-latest"
+
+[thresholds]
+# Every value here is uncalibrated until calibration/report.md says otherwise.
+security_block = 0.85
+swallows_failure_block = 0.85
+unrequested_change_block = 0.80
+unnecessary_complexity_block = 0.80
+complexity_score_gate = 2.0       # control_flow_added or abstraction_added must reach this
+behavior_small_gate = 1.0         # and behavior_added must be at or under this
+maintenance_advise = 2.2
+maintenance_confidence = 0.6
+verbosity_advise = 1.5
+tests_missing_advise = 0.3        # tests_proportional at or under this ...
+tests_behavior_gate = 2.0         # ... when behavior_added is at or over this
+
+[redact]
+deny_paths = ["infra/secrets/**"]
+extra_patterns = []
+
+[paths]
+standards = "STANDARDS.md"
+state_dir = "~/.local/state/jev-review"
