@@ -120,7 +120,7 @@ class CheckResult:
 
 
 def do_check(payload: dict[str, Any], cfg: Config, *, event: str, explain: bool = False,
-             session_override: str | None = None) -> CheckResult:
+             session_override: str | None = None, rev_range: tuple[str, str] | None = None) -> CheckResult:
     res = CheckResult()
     t_start = time.monotonic()
     cwd = Path(payload.get("cwd") or os.getcwd())
@@ -148,12 +148,19 @@ def do_check(payload: dict[str, Any], cfg: Config, *, event: str, explain: bool 
         res.skipped_reason = "mode off"
         return res
 
+    task = s.get("prompt") or str(payload.get("prompt") or "")
+
     # Delta
     fallback = False
-    start = s.get("tree")
-    if not start:
-        start, fallback = head_tree(repo), True
-    end = snapshot_tree(repo)
+    if rev_range:
+        start, end = (git(repo, "rev-parse", rev_range[0]).strip(), git(repo, "rev-parse", rev_range[1]).strip())
+        if not task:
+            task = "\n".join(git(repo, "log", "--format=%s%n%b", f"{start}..{end}").split("\n")[:40])[: cfg.prompt_bytes]
+    else:
+        start = s.get("tree")
+        if not start:
+            start, fallback = head_tree(repo), True
+        end = snapshot_tree(repo)
     if start == end:
         res.skipped_reason = "no changes"
         return res
@@ -166,7 +173,6 @@ def do_check(payload: dict[str, Any], cfg: Config, *, event: str, explain: bool 
         store.save_session(session_id, s)
         return res
 
-    task = s.get("prompt") or str(payload.get("prompt") or "")
     summary = str(payload.get("last_assistant_message") or "")
     standards = load_standards(cfg, repo)
     language = repo_language(repo)
@@ -369,8 +375,9 @@ def _print_explain(res: CheckResult) -> None:
         print(f"audit: {res.audit_path}")
 
 
-def run_explain(*, config_path: str | None = None, as_json: bool = False) -> int:
-    """On demand: review the working tree against HEAD (or against the session mark if JEV_REVIEW_SESSION is set)."""
+def run_explain(*, config_path: str | None = None, as_json: bool = False, rev_range: str | None = None) -> int:
+    """On demand: review the working tree against HEAD, the session mark (JEV_REVIEW_SESSION), or a
+    commit range such as main..feature (--range), which is how a PR is reviewed."""
     cwd = Path(os.getcwd())
     repo = repo_root(cwd)
     if repo is None:
@@ -379,8 +386,15 @@ def run_explain(*, config_path: str | None = None, as_json: bool = False) -> int
     cfg = load_config(repo, Path(config_path) if config_path else None)
     session = os.environ.get("JEV_REVIEW_SESSION") or "explain"
     payload = {"cwd": str(cwd), "session_id": session, "prompt": os.environ.get("JEV_REVIEW_TASK", "")}
+    rr = None
+    if rev_range:
+        if ".." not in rev_range:
+            print("jev-review: --range must look like base..head")
+            return 1
+        base, head = rev_range.split("..", 1)
+        rr = (base, head or "HEAD")
     try:
-        res = do_check(payload, cfg, event="Stop", explain=True, session_override=session)
+        res = do_check(payload, cfg, event="Stop", explain=True, session_override=session, rev_range=rr)
     except Exception as e:
         print(f"jev-review: error: {type(e).__name__}: {e}")
         return 1

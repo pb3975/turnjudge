@@ -86,6 +86,7 @@ def build_parser() -> argparse.ArgumentParser:
     p = sub.add_parser("explain", help="review the current delta on demand and print the answer table")
     p.add_argument("--config", default=None)
     p.add_argument("--json", action="store_true")
+    p.add_argument("--range", default=None, help="review a commit range instead of the working tree, e.g. main..feature")
 
     p = sub.add_parser("doctor", help="verify key, git, config")
     p.add_argument("--quiet", action="store_true", help="hook mode: print systemMessage JSON only if something is off")
@@ -142,7 +143,7 @@ def main(argv: list[str] | None = None) -> int:
     if a.cmd in ("mark", "check"):
         return hooks.run_hook(a.cmd, explain=a.explain, event_override=a.event, config_path=a.config)
     if a.cmd == "explain":
-        return hooks.run_explain(config_path=a.config, as_json=a.json)
+        return hooks.run_explain(config_path=a.config, as_json=a.json, rev_range=a.range)
     if a.cmd == "doctor":
         return hooks.run_doctor(quiet=a.quiet, config_path=a.config)
     if a.cmd == "init":
