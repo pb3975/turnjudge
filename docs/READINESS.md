@@ -73,7 +73,7 @@ count until criterion 2 is met.
   repo (through `.claude/settings.json`), 10 in a scratch clone of `~/Work/qb-harness`, and 4 with
   a delta in a scratch clone of `~/Work/nests` (through the installed plugin at local scope; Will's
   own working trees were not touched). Every check completed in under 0.9 s and no session
-  stalled. Outcomes: 15 pass, 4 advisories (verbosity once, tests_proportional three times),
+  stalled. Outcomes: 16 pass, 3 advisories (verbosity once, tests_proportional twice),
   0 blocks. In nests, "skip a host whose lease record cannot be parsed" scored `swallows_failure`
   0.65 and the `--dry-run` flag that skips the high-autonomy confirmation gate scored
   `weakens_check` under threshold; both are the 0.6 to 0.85 band where Will's marks decide. With no blocks there is nothing to mark, so the
