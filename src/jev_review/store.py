@@ -51,12 +51,16 @@ class Store:
         os.replace(tmp, p)
 
     # ---- audit ---------------------------------------------------------------------------
-    def audit(self, record: dict[str, Any]) -> Path:
+    def audit(self, record: dict[str, Any]) -> Path | None:
         day = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%d")
         p = self.audit_dir / f"{day}.jsonl"
         record = {"ts": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), **record}
-        with p.open("a") as f:
-            f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        try:
+            with p.open("a") as f:
+                f.write(json.dumps(record, ensure_ascii=False) + "\n")
+        except (OSError, TypeError, ValueError) as exc:
+            self.log_error("audit", exc)
+            return None
         return p
 
     def audit_files(self) -> list[Path]:
@@ -65,6 +69,12 @@ class Store:
     # ---- errors --------------------------------------------------------------------------
     def log_error(self, where: str, exc: BaseException | None = None, note: str = "") -> None:
         p = self.root / "errors.log"
+        try:
+            self._log_error(p, where, exc, note)
+        except OSError:
+            pass
+
+    def _log_error(self, p: Path, where: str, exc: BaseException | None, note: str) -> None:
         with p.open("a") as f:
             f.write(f"{dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')} {where} {note}\n")
             if exc is not None:

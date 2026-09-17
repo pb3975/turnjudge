@@ -1,4 +1,4 @@
-"""jev-review CLI: mark | check | calibrate | explain | doctor | init.
+"""jev-review CLI: mark | check | calibrate | explain | doctor | init | audit.
 
 Hook-facing commands (mark, check) must never exit non-zero or print anything but hook JSON.
 """
@@ -95,6 +95,9 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument("path", nargs="?", default=".")
     p.add_argument("--force", action="store_true")
 
+    p = sub.add_parser("audit", help="per-day summary of this project's audit log")
+    p.add_argument("--config", default=None)
+
     p = sub.add_parser("feedback", help="mark an audited block as helpful or not")
     p.add_argument("session_prefix")
     p.add_argument("mark", choices=["helpful", "unhelpful", "list"])
@@ -146,6 +149,9 @@ def main(argv: list[str] | None = None) -> int:
         return hooks.run_init(Path(a.path), force=a.force)
     if a.cmd == "feedback":
         return hooks.run_feedback(a.session_prefix, a.mark, a.note, config_path=a.config)
+    if a.cmd == "audit":
+        from jev_review import audit
+        return audit.run_audit(config_path=a.config)
     ap.error(f"unknown command {a.cmd}")
     return 2
 

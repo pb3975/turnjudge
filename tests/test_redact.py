@@ -43,6 +43,9 @@ def test_extra_deny_paths():
     ("google_api_key", "AIzaSyA1234567890abcdefghijklmnopqrstuv"),
     ("sendgrid_key", "SG.abcdefghijklmnopq.abcdefghijklmnopqrstuvwxyz"),
     ("npm_token", "npm_abcdefghijklmnopqrstuvwxyz0123456789"),
+    ("azure_storage_key",
+     "AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw=="),
+    ("twilio_sid", "TWILIO_ACCOUNT_SID=AC1234567890abcdef1234567890abcdef"),
     ("jwt", "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.dozjgNryP4J3jVmNHl0w5N_XgL0n3I9PlFUP0THsR8U"),
     ("bearer", "Authorization: Bearer abcdefghijklmnopqrstuvwxyz012345"),
     ("basic_auth_header", "Authorization: Basic dXNlcjpwYXNzd29yZA=="),
@@ -104,6 +107,8 @@ SECRETS = [
     "ghu_abcdefghijklmnopqrstuvwxyz0123456789", "ghr_abcdefghijklmnopqrstuvwxyz0123456789",
     "https://x.com/?k=1 Authorization=Bearer Zm9vYmFyYmF6cXV4cXV1eA==abc", "passwd: \"n0tS0S3cr3tButL0ng\"",
     "access_key = \"AKIAZZZZZZZZZZZZZZZZ\"", "APP_KEY=base64:Qk9PVEFQUEtFWVNFQ1JFVDEyMzQ1Njc4OTA=",
+    "DefaultEndpointsProtocol=https;AccountName=fake;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;EndpointSuffix=core.windows.net",
+    "TWILIO_AUTH_SID=AC1234567890abcdef1234567890abcdef",
 ]
 LOOKALIKES = [
     "def main():\n    return 1", "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",

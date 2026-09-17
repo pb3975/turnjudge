@@ -96,6 +96,8 @@ _PATTERNS: list[tuple[str, re.Pattern[str]]] = [
     ("google_api_key", re.compile(r"\bAIza[0-9A-Za-z_-]{35}\b")),
     ("sendgrid_key", re.compile(r"\bSG\.[A-Za-z0-9_-]{16,}\.[A-Za-z0-9_-]{16,}\b")),
     ("npm_token", re.compile(r"\bnpm_[A-Za-z0-9]{36}\b")),
+    ("azure_storage_key", re.compile(r"(?i)(AccountKey)\s*=\s*([A-Za-z0-9+/]{86}==)")),
+    ("twilio_sid", re.compile(r"\bAC[0-9a-fA-F]{32}\b")),
     ("pypi_token", re.compile(r"\bpypi-AgEIcHlwaS5vcmc[A-Za-z0-9_-]{20,}\b")),
     ("apikey_prefix", re.compile(r"\b(?:apikey|api_key|apik)_[A-Za-z0-9]{16,}\b", re.IGNORECASE)),
     ("jwt", re.compile(r"\beyJ[A-Za-z0-9_-]{8,}\.eyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b")),
@@ -150,7 +152,7 @@ def scrub_secrets(text: str, extra_patterns: list[str] | None = None) -> tuple[s
                     return m.group(0)
                 return m.group(0).replace(val, bump("assigned_secret"))
             text = pat.sub(_pw, text)
-        elif kind == "aws_secret_key":
+        elif kind in ("aws_secret_key", "azure_storage_key"):
             text = pat.sub(lambda m: m.group(0).replace(m.group(2), bump(kind)), text)
         else:
             text = pat.sub(lambda m: bump(kind), text)
