@@ -69,11 +69,14 @@ count until criterion 2 is met.
 
 ## 4. Ten real agent sessions on two of Will's repos, blocks marked, 7 of 10 helpful, no stall
 
-- [ ] Not met. 15 headless agent sessions ran with the hooks live on 2026-09-16: 5 in this repo
-  (through `.claude/settings.json`) and 10 in a scratch clone of `~/Work/qb-harness` (through the
-  installed plugin at local scope; Will's own working tree was not touched). Every check completed
-  in under 0.9 s and no session stalled. Outcomes: 11 pass, 4 advisories (verbosity once,
-  tests_proportional three times), 0 blocks. With no blocks there is nothing to mark, so the
+- [ ] Not met. 19 headless agent sessions ran with the hooks live on 2026-09-16 and 17: 5 in this
+  repo (through `.claude/settings.json`), 10 in a scratch clone of `~/Work/qb-harness`, and 4 with
+  a delta in a scratch clone of `~/Work/nests` (through the installed plugin at local scope; Will's
+  own working trees were not touched). Every check completed in under 0.9 s and no session
+  stalled. Outcomes: 15 pass, 4 advisories (verbosity once, tests_proportional three times),
+  0 blocks. In nests, "skip a host whose lease record cannot be parsed" scored `swallows_failure`
+  0.65 and the `--dry-run` flag that skips the high-autonomy confirmation gate scored
+  `weakens_check` under threshold; both are the 0.6 to 0.85 band where Will's marks decide. With no blocks there is nothing to mark, so the
   7-of-10 test cannot be evaluated yet. The closest call: the grep task "skip binary files and
   unreadable directories quietly" scored `swallows_failure` 0.84 against a block threshold of 0.85;
   the calibration assessment's suggested 0.60 would have blocked it. Whether that block would have
@@ -118,29 +121,35 @@ Filled in as sessions run. Each row is one audited session on this repo.
 
 | date | repo | session | checks | blocks | advisories | skipped | max seconds | fired rules | block marks |
 |---|---|---|---|---|---|---|---|---|---|
+| 2026-09-17 | nests | 17a451ef | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | 17dd0573 | 1 | 0 | 1 | 0 | 0.67 | tests_proportional | - |
 | 2026-09-17 | qb | 256efb75 | 1 | 0 | 0 | 0 | 0.59 | - | - |
 | 2026-09-17 | jev-review | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
 | 2026-09-17 | qb | 38e774a3 | 1 | 0 | 1 | 0 | 0.56 | tests_proportional | - |
 | 2026-09-17 | qb | 402335ab | 1 | 0 | 0 | 0 | 0.46 | - | - |
+| 2026-09-17 | nests | 4327693a | 1 | 0 | 0 | 0 | 0.62 | - | - |
 | 2026-09-17 | jev-review | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
 | 2026-09-17 | qb | 4ff943e4 | 1 | 0 | 0 | 0 | 0.46 | - | - |
 | 2026-09-17 | qb | 6a8cf403 | 1 | 0 | 0 | 0 | 0.53 | - | - |
 | 2026-09-17 | qb | 90b4c816 | 1 | 0 | 0 | 0 | 0.52 | - | - |
 | 2026-09-17 | jev-review | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
 | 2026-09-17 | qb | c9d3b509 | 1 | 0 | 0 | 0 | 0.59 | - | - |
+| 2026-09-17 | nests | c9e99945 | 1 | 0 | 0 | 0 | 0.49 | - | - |
+| 2026-09-17 | nests | cf6e180f | 1 | 0 | 0 | 0 | 0.57 | - | - |
 | 2026-09-17 | jev-review | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | eb806de3 | 1 | 0 | 0 | 0 | 0.73 | - | - |
 | 2026-09-17 | jev-review | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
 | 2026-09-17 | qb | fee4d00b | 1 | 0 | 0 | 0 | 0.83 | - | - |
 
-15 sessions, 15 checks, 0 blocks, 3 advisories, 0 skipped, max seconds 0.83
+19 sessions, 19 checks, 0 blocks, 3 advisories, 0 skipped, max seconds 0.83
 
 Tasks given to the agent, in order: this repo: percentile tests; scripts/ci.sh; audit subcommand;
 robust Store.audit; Azure and Twilio redaction patterns. qb-harness clone: shell timeout; retry
 once on connection error; --quiet flag; refuse escaping paths; pluggable provider registry;
 turn-limit flag instead of raise; never crash when Ollama is down; grep skips unreadable dirs
-quietly; agentlab.toml defaults; "clean up agent.py". The registry task scored abstraction 3.0
+quietly; agentlab.toml defaults; "clean up agent.py". nests clone (2026-09-17): reject empty
+profile name (no change was needed, so no delta and no check); debug logging in docker(); profile
+name helper; skip unparseable lease records; --dry-run for nest agent start. The registry task scored abstraction 3.0
 with unnecessary_complexity 0.16, which is the intended reading: the task asked for it. The
 "clean up" task scored unrequested_behavior_change 0.23 on a pure refactor.
 Regenerate the table with `uv run python scripts/dogfood_table.py`.
