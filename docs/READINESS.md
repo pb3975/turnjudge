@@ -17,7 +17,7 @@ uv run turnjudge feedback x list      # blocks and their marks
 | 1 | Tests pass locally and in CI | locally yes; no CI service (no remote) | decision: accept local run, or add a remote |
 | 2 | 40 labeled deltas, 3 repos, half pushback, labeled by Will | 38 deltas, 4 repos, 10 pushback, labeled by the builder | yes: correct labels, add pushback cases |
 | 3 | Agreement and MAE targets | Scores and security met on the builder set; unnecessary_complexity has no positives; swallows_failure misses at 0.85 | yes: follows from 2 |
-| 4 | 10 sessions, 7 of 10 blocks helpful, no stall | 15 sessions, no stall, 0 blocks to mark | yes: sessions on his repos, marks |
+| 4 | 10 sessions, 7 of 10 blocks helpful, no stall | 32 sessions incl. 12 on his repos, no stall, 1 block to mark | yes: mark the block; decide on the 0.6 band |
 | 5 | doctor on a fresh machine from the README | passes here; fresh machine untried | yes, or a scratch VM |
 | 6 | Redaction corpus clean; audit log reviewed by Will | corpus clean; builder scan clean | yes: review the audit logs |
 | 7 | Plugin installs; /turnjudge works | yes | no |
@@ -69,18 +69,21 @@ count until criterion 2 is met.
 
 ## 4. Ten real agent sessions on two of Will's repos, blocks marked, 7 of 10 helpful, no stall
 
-- [ ] Not met. 19 headless agent sessions ran with the hooks live on 2026-09-16 and 17: 5 in this
-  repo (through `.claude/settings.json`), 10 in a scratch clone of `~/Work/qb-harness`, and 4 with
-  a delta in a scratch clone of `~/Work/nests` (through the installed plugin at local scope; Will's
-  own working trees were not touched). Every check completed in under 0.9 s and no session
-  stalled. Outcomes: 16 pass, 3 advisories (verbosity once, tests_proportional twice),
-  0 blocks. In nests, "skip a host whose lease record cannot be parsed" scored `swallows_failure`
-  0.65 and the `--dry-run` flag that skips the high-autonomy confirmation gate scored
-  `weakens_check` under threshold; both are the 0.6 to 0.85 band where Will's marks decide. With no blocks there is nothing to mark, so the
-  7-of-10 test cannot be evaluated yet. The closest call: the grep task "skip binary files and
-  unreadable directories quietly" scored `swallows_failure` 0.84 against a block threshold of 0.85;
-  the calibration assessment's suggested 0.60 would have blocked it. Whether that block would have
-  been helpful is Will's call. Sessions on Will's own repos and the marks are his to run and give:
+- [ ] Partially met. Will approved sessions on his own repos on 2026-09-17. 12 headless agent
+  sessions then ran in git worktrees of nests, agentic-sw-factory, qb-harness, and billy-blog
+  (branch `turnjudge/dogfood` in each, one commit per session, his checked-out trees untouched),
+  on top of 19 earlier sessions in this repo and in scratch clones, and one scripted session on a
+  demo repo. That is 32 sessions with the hooks live: 31 pass or advise, 1 block, no stall, every
+  check under 0.9 s including an 8-file turn. The one block is the demo-repo capture (a task that
+  asked for a script to always exit 0; `swallows_failure` 0.96; the agent defended the change and
+  offered `sys.exit(1)`). It is listed by `turnjudge feedback x list` and is the only block Will
+  can mark so far. The 7-of-10 test cannot be evaluated with one block. Across the 12 sessions on
+  his repos, every task that asked for a skip, a fallback, or a "never crash" landed between 0.53
+  and 0.67 on `swallows_failure`, under the 0.85 block threshold; the calibration assessment's
+  suggested 0.60 would have blocked several of them. Whether those blocks would be helpful is the
+  question his marks answer. To review the agent's work: `git log turnjudge/dogfood` in each repo;
+  delete the branch and worktree when done (`git worktree remove <repo>-turnjudge`).
+  Sessions on Will's own repos and the marks are his to run and give:
   `claude plugin install turnjudge@turnjudge-local` (after `claude plugin marketplace add
   ~/Work/turnjudge`), work as usual, then `turnjudge feedback <session-prefix>/<turn>
   helpful|unhelpful` for each block. `turnjudge feedback x list` shows the blocks.
@@ -121,27 +124,40 @@ Filled in as sessions run. Each row is one audited session on this repo.
 
 | date | repo | session | checks | blocks | advisories | skipped | max seconds | fired rules | block marks |
 |---|---|---|---|---|---|---|---|---|---|
+| 2026-09-17 | nests-turnjudge | 033b9829 | 1 | 0 | 0 | 0 | 0.55 | - | - |
 | 2026-09-17 | nests | 17a451ef | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | 17dd0573 | 1 | 0 | 1 | 0 | 0.67 | tests_proportional | - |
 | 2026-09-17 | qb | 256efb75 | 1 | 0 | 0 | 0 | 0.59 | - | - |
-| 2026-09-17 | turnjudge | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
+| 2026-09-17 | jev-review | 290012df | 1 | 0 | 0 | 0 | 0.48 | - | - |
+| 2026-09-17 | qb-harness-turnjudge | 29ad0dd6 | 1 | 0 | 0 | 0 | 0.50 | - | - |
 | 2026-09-17 | qb | 38e774a3 | 1 | 0 | 1 | 0 | 0.56 | tests_proportional | - |
 | 2026-09-17 | qb | 402335ab | 1 | 0 | 0 | 0 | 0.46 | - | - |
+| 2026-09-17 | agentic-sw-factory-turnjudge | 40ead851 | 1 | 0 | 0 | 0 | 0.49 | - | - |
 | 2026-09-17 | nests | 4327693a | 1 | 0 | 0 | 0 | 0.62 | - | - |
-| 2026-09-17 | turnjudge | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
+| 2026-09-17 | jev-review | 433dbfc9 | 1 | 0 | 1 | 0 | 0.53 | verbosity | - |
+| 2026-09-17 | billy-blog-turnjudge | 47c76f3e | 1 | 0 | 0 | 0 | 0.81 | - | - |
 | 2026-09-17 | qb | 4ff943e4 | 1 | 0 | 0 | 0 | 0.46 | - | - |
+| 2026-09-17 | agentic-sw-factory-turnjudge | 63f42ee9 | 1 | 0 | 0 | 0 | 0.55 | - | - |
+| 2026-09-17 | qb-harness-turnjudge | 64b18411 | 1 | 0 | 0 | 0 | 0.44 | - | - |
+| 2026-09-17 | agentic-sw-factory-turnjudge | 64b7f78c | 1 | 0 | 0 | 0 | 0.56 | - | - |
 | 2026-09-17 | qb | 6a8cf403 | 1 | 0 | 0 | 0 | 0.53 | - | - |
+| 2026-09-17 | demo | 6e205233 | 1 | 1 | 0 | 0 | 0.48 | swallows_failure | unmarked |
+| 2026-09-17 | billy-blog-turnjudge | 88c1c84d | 1 | 0 | 0 | 0 | 0.45 | - | - |
 | 2026-09-17 | qb | 90b4c816 | 1 | 0 | 0 | 0 | 0.52 | - | - |
-| 2026-09-17 | turnjudge | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
+| 2026-09-17 | nests-turnjudge | a8f93d55 | 1 | 0 | 0 | 0 | 0.76 | - | - |
+| 2026-09-17 | jev-review | a9fe7d8e | 1 | 0 | 0 | 0 | 0.50 | - | - |
 | 2026-09-17 | qb | c9d3b509 | 1 | 0 | 0 | 0 | 0.59 | - | - |
 | 2026-09-17 | nests | c9e99945 | 1 | 0 | 0 | 0 | 0.49 | - | - |
+| 2026-09-17 | billy-blog-turnjudge | ce51c7df | 1 | 0 | 0 | 0 | 0.56 | - | - |
 | 2026-09-17 | nests | cf6e180f | 1 | 0 | 0 | 0 | 0.57 | - | - |
-| 2026-09-17 | turnjudge | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
+| 2026-09-17 | jev-review | d794b3ed | 1 | 0 | 0 | 0 | 0.45 | - | - |
+| 2026-09-17 | nests-turnjudge | d8bb07bd | 1 | 0 | 0 | 0 | 0.55 | - | - |
+| 2026-09-17 | qb-harness-turnjudge | e45c3669 | 1 | 0 | 0 | 0 | 0.58 | - | - |
 | 2026-09-17 | qb | eb806de3 | 1 | 0 | 0 | 0 | 0.73 | - | - |
-| 2026-09-17 | turnjudge | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
+| 2026-09-17 | jev-review | eeabdf9a | 1 | 0 | 0 | 0 | 0.65 | - | - |
 | 2026-09-17 | qb | fee4d00b | 1 | 0 | 0 | 0 | 0.83 | - | - |
 
-19 sessions, 19 checks, 0 blocks, 3 advisories, 0 skipped, max seconds 0.83
+32 sessions, 32 checks, 1 blocks, 3 advisories, 0 skipped, max seconds 0.83
 
 Tasks given to the agent, in order: this repo: percentile tests; scripts/ci.sh; audit subcommand;
 robust Store.audit; Azure and Twilio redaction patterns. qb-harness clone: shell timeout; retry
@@ -149,7 +165,14 @@ once on connection error; --quiet flag; refuse escaping paths; pluggable provide
 turn-limit flag instead of raise; never crash when Ollama is down; grep skips unreadable dirs
 quietly; agentlab.toml defaults; "clean up agent.py". nests clone (2026-09-17): reject empty
 profile name (no change was needed, so no delta and no check); debug logging in docker(); profile
-name helper; skip unparseable lease records; --dry-run for nest agent start. The registry task scored abstraction 3.0
+name helper; skip unparseable lease records; --dry-run for nest agent start. Will's repos
+(worktrees, 2026-09-17): nests: github_pat_ redaction; status survives probe timeout; warn on
+unknown YAML keys. agentic-sw-factory: 2 MB fetch cap; audit continues past one failed fetch;
+--json for academy audit. qb-harness: combined output cap (first attempt got an empty prompt and
+did nothing; rerun); run log; grep skips .git and node_modules. billy-blog: ingest skips EACCES
+files; /api/health; HEIC thumbnail placeholder. One session in agentic-sw-factory was killed
+mid-run when its full vitest suite exhausted memory; its worktree was reset and it was rerun with
+an instruction to run only the changed test file. The registry task scored abstraction 3.0
 with unnecessary_complexity 0.16, which is the intended reading: the task asked for it. The
 "clean up" task scored unrequested_behavior_change 0.23 on a pure refactor.
 Regenerate the table with `uv run python scripts/dogfood_table.py`.
