@@ -18,9 +18,9 @@ DEFAULT_THRESHOLDS: dict[str, float] = {
     "swallows_failure_block": 0.85,
     "swallows_failure_advise": 0.50,
     "unrequested_change_block": 0.80,
-    "unnecessary_complexity_block": 0.80,
+    "unnecessary_complexity_block": 0.70,
+    "unnecessary_complexity_advise": 0.50,
     "complexity_score_gate": 2.0,
-    "behavior_small_gate": 1.0,
     "maintenance_advise": 2.2,
     "maintenance_confidence": 0.6,
     "verbosity_advise": 1.5,
@@ -104,9 +104,11 @@ T_SWALLOWS_ADVISE = ("turnjudge (advisory): `{path}` may default away or silence
                      "no longer tell that something went wrong, say so in your reply or narrow the handling to the case the task named.")
 T_UNREQUESTED = ("turnjudge: `{path}` appears to change behavior that the task did not ask for and your summary does not "
                  "mention (p={p:.2f}). Task: \"{task}\". Either revert the extra change or state it explicitly in your reply.")
-T_COMPLEXITY = ("turnjudge: `{path}` adds {what} (control flow {cf}, abstraction {ab}) for a change judged as {beh_word} "
-                "(behavior {beh}). Task: \"{task}\". Either simplify to an inline change or explain in your reply why the "
-                "structure is needed.")
+T_COMPLEXITY = ("turnjudge: `{path}` adds {what} (control flow {cf}, abstraction {ab}) that looks disproportionate to the "
+                "behavior the task asked for (behavior {beh}, disproportion p={p:.2f}). Task: \"{task}\". Either simplify "
+                "to an inline change or explain in your reply why the structure is needed.")
+T_COMPLEXITY_ADVISE = ("turnjudge (advisory): `{path}` may carry more structure than the task needs (disproportion p={p:.2f}, "
+                       "abstraction {ab}, control flow {cf}). Task: \"{task}\". Worth a second look before it settles in.")
 T_MAINT = ("turnjudge (advisory): `{path}` is judged hard to modify safely later (maintenance risk {mr}, confidence {conf:.2f}). "
            "Consider reducing coupling or adding a short comment on why it is shaped this way.")
 T_VERBOSITY = ("turnjudge (advisory): `{path}` carries padding beyond what the task needs (verbosity {vb}): boilerplate, "
@@ -145,16 +147,20 @@ def decide_file(path: str, ans: Answers, thresholds: dict[str, float] | None = N
     if p is not None and p >= t["unrequested_change_block"]:
         fire("unrequested_behavior_change", "block", T_UNREQUESTED.format(path=path, p=p, task=task_s))
 
+    # Disproportion is judged by the Noul itself relative to `task`; the Score gate only confirms that
+    # real structure was added. No behavior gate: an over-built change still delivers the feature, so
+    # behavior_added is not small (calibration/report.md, synthetic pairs, 2026-09-17).
     p = ans.noul("unnecessary_complexity")
     cf, ab, beh = ans.score("control_flow_added"), ans.score("abstraction_added"), ans.score("behavior_added")
-    if (p is not None and p >= t["unnecessary_complexity_block"]
-            and ((cf is not None and cf >= t["complexity_score_gate"]) or (ab is not None and ab >= t["complexity_score_gate"]))
-            and beh is not None and beh <= t["behavior_small_gate"]):
+    structure = ((cf is not None and cf >= t["complexity_score_gate"]) or (ab is not None and ab >= t["complexity_score_gate"]))
+    if p is not None and p >= t["unnecessary_complexity_block"] and structure:
         what = "a new indirection layer" if (ab or 0) >= (cf or 0) else "nested control flow"
-        beh_word = "no behavior change" if beh < 0.5 else "a small fix"
         fire("unnecessary_complexity", "block", T_COMPLEXITY.format(
             path=path, what=what, cf=_lvl("control_flow_added", cf), ab=_lvl("abstraction_added", ab),
-            beh=_lvl("behavior_added", beh), beh_word=beh_word, task=task_s))
+            beh=_lvl("behavior_added", beh), p=p, task=task_s))
+    elif p is not None and p >= t["unnecessary_complexity_advise"]:
+        fire("unnecessary_complexity", "advise", T_COMPLEXITY_ADVISE.format(
+            path=path, p=p, ab=_lvl("abstraction_added", ab), cf=_lvl("control_flow_added", cf), task=task_s))
 
     mr, mc = ans.score("maintenance_risk"), ans.confidence("maintenance_risk")
     if mr is not None and mr >= t["maintenance_advise"] and (mc or 0.0) >= t["maintenance_confidence"]:

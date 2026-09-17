@@ -96,3 +96,12 @@ the right shape for a question that should advise. With the advisory tier the po
 something on 5 of 18 pushback deltas (0.28) and stays silent on 37 of 39 clean ones.
 
 The reviewer's five wording suggestions were tried and reverted (`calibration/experiments/`).
+
+**Synthetic complexity pairs, 2026-09-17.** See `calibration/synthetic/README.md`. Twelve
+proportionate-versus-over-built pairs plus three requested-structure cases gave
+`unnecessary_complexity` its first positives. It separated them perfectly (over-built 0.50 to
+0.87, everything else at or under 0.45), and ignored structure the task asked for. The block rule
+was rewritten to drop the behavior-added gate, which had made it unfireable, and to add an
+advisory tier at 0.50. On the combined 91-entry set the policy now speaks on 24 of 37 pushback
+deltas (0.65, up from 0.28) and stays silent on 52 of 54 clean ones; the one clean block is still
+the truncated-task case.

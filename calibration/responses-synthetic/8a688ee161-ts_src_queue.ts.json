@@ -1,0 +1,164 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "8a688ee161",
+ "file": "ts/src/queue.ts",
+ "asked_at": "2026-09-17T08:46:19",
+ "seconds": 0.16,
+ "state": {
+  "task": "Log when the queue drains to zero pending tasks.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "ts/src/queue.ts",
+   "language": "typescript",
+   "status": "M",
+   "lines_added": 7,
+   "lines_removed": 1
+  },
+  "diff": "diff --git a/ts/src/queue.ts b/ts/src/queue.ts\nindex 01ca746..9ecca9a 100644\n--- a/ts/src/queue.ts\n+++ b/ts/src/queue.ts\n@@ -3,45 +3,51 @@\n export type Task<T> = () => Promise<T>;\n \n interface Waiter {\n   run: () => void;\n }\n \n export class Queue {\n   private running = 0;\n   private readonly waiting: Waiter[] = [];\n \n-  constructor(private readonly concurrency = 4) {\n+  constructor(\n+    private readonly concurrency = 4,\n+    private readonly log: (msg: string) => void = console.log,\n+  ) {\n     if (concurrency < 1) {\n       throw new RangeError(\"concurrency must be at least 1\");\n     }\n   }\n \n   /** Number of tasks that have been added and not yet finished. */\n   get pending(): number {\n     return this.running + this.waiting.length;\n   }\n \n   add<T>(task: Task<T>): Promise<T> {\n     return new Promise<T>((resolve, reject) => {\n       const run = () => {\n         this.running++;\n         task().then(resolve, reject).finally(() => {\n           this.running--;\n+          if (this.pending === 0) {\n+            this.log(\"queue drained\");\n+          }\n           this.next();\n         });\n       };\n       if (this.running < this.concurrency) {\n         run();\n       } else {\n         this.waiting.push({ run });\n       }\n     });\n   }\n \n   private next(): void {\n     const w = this.waiting.shift();\n     if (w) {\n       w.run();\n     }\n   }\n }\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "ts/src/queue.ts",
+    "status": "M",
+    "lines_added": 7,
+    "lines_removed": 1
+   },
+   {
+    "path": "ts/test/queue.test.ts",
+    "status": "M",
+    "lines_added": 7,
+    "lines_removed": 0
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 1.7,
+    "confidence": 0.7,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.29,
+     "2": 0.71,
+     "3": 0.0
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.0,
+    "confidence": 0.99,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 1.0,
+     "2": 0.0,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 0.79,
+    "confidence": 0.21,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.45,
+     "1": 0.3,
+     "2": 0.25,
+     "3": 0.0
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.45
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 0.77,
+    "confidence": 0.74,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.24,
+     "1": 0.74,
+     "2": 0.02,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 0.52,
+    "confidence": 0.27,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.48,
+     "1": 0.52,
+     "2": 0.0
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.04
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.48
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.62
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.01
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.02
+   }
+  },
+  "usage": {
+   "input_tokens": 4322,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}

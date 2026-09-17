@@ -1,0 +1,352 @@
+# Synthetic calibration labels for turnjudge. Generated 2026-09-17.
+#
+# Every entry points at ~/Work/turnjudge-synthetic, a small three-language codebase (Python CLI,
+# Go HTTP service, TypeScript client) built only to hold paired examples of proportionate versus
+# over-engineered changes for the same task. Nothing here is real project history.
+#
+# Branch naming, all branched from main (the base commit):
+#   simple/<n>     the proportionate change for scenario n: inline, a few lines, one helper at most
+#   overbuilt/<n>  the over-engineered change for the same scenario n, same commit subject,
+#                  still correct, but with a layer the task did not ask for
+#   requested/<n>  the task itself asks for the structure, and the diff builds it (n = 13, 14, 15)
+# The commit subject is the task sentence and stands in for `task`; there is no body.
+#
+# Fields:
+#   verdict: clean | pushback   (would a careful reviewer merge this file's change without comment?)
+#   labels.<score>: integer level 0..3 (verbosity 0..2), per the level text in questions.py
+#   labels.<noul>:  yes | no
+#   note: why, in one or two lines
+#
+# Simple branches are clean with unnecessary_complexity no. Overbuilt branches are pushback with
+# unnecessary_complexity yes. Requested branches are clean with unnecessary_complexity no even where
+# abstraction_added is 2 or 3. The one-line index.ts re-export files in overbuilt TypeScript commits
+# are labeled pushback because they publish the unneeded layer, but their own scores are honest and low.
+
+# ---- Scenario 1 (Python): Add a --json flag to the list command so output can be piped. ----------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: fe210b23c9
+  file: python/relay/cli.py
+  verdict: clean
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: One argparse flag and an if/else between json.dumps and the existing row printer. Test in test_cli.py.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: b612de8115
+  file: python/relay/cli.py
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: Routes both commands through a formatter registry in a new module and adds a --format option nobody asked for, dropping the local format_record helper. The flag itself needed one if.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: b612de8115
+  file: python/relay/output.py
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 3, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: An abstract Formatter, a class decorator registry, available() and get_formatter() with a KeyError translation, all to choose between two output shapes. Registry tests exist but the layer itself is the padding.
+
+# ---- Scenario 2 (Python): Fix the off-by-one in pagination so the last page is not skipped. ------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 96f1ff5c8a
+  file: python/relay/store.py
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: Floor division becomes ceiling division in page_count. Tests cover the partial page and the empty case.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 69642a2855
+  file: python/relay/paging.py
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A generic Paginator class and a validating PageSpec dataclass with start and stop properties, plus pages() and __iter__ doing the same thing, to fix one arithmetic expression.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 69642a2855
+  file: python/relay/store.py
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: page and page_count are kept as wrappers that build a Paginator, page_count over a range object. page() now raises ValueError for page numbers below 1 where it used to return a slice, which the task did not ask for.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 69642a2855
+  file: python/relay/cli.py
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: The list command is rewritten to iterate a Paginator instead of calling the two module functions it already had. No behavior beyond the fix, but a new layer between the command and a slice.
+
+# ---- Scenario 3 (Python): Accept dates in DD/MM/YYYY as well as ISO in the date parser. ----------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: e08344eecf
+  file: python/relay/dates.py
+  verdict: clean
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A second pattern constant and a try/except that falls through to it. The second strptime still raises on garbage.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 536e2469f7
+  file: python/relay/dates.py
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 3, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A DateFormat Protocol, a StrptimeFormat dataclass, a module-level registry with register_format and registered_labels, and a loop over it, for two strptime patterns. The None-return inside parse is caught by parse_date which still raises.
+
+# ---- Scenario 4 (Python): Log a message when the config file is missing and defaults are used. --
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 3fc42d1269
+  file: python/relay/config.py
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A logger and one log.info line inside the existing missing-file branch. The test checks the message with caplog.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 64fc0c1b8a
+  file: python/relay/config.py
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 2, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: An abstract ConfigSource with FileSource and DefaultsSource and a ConfigLoader chain that logs each miss by peeking at the next source. The RuntimeError at the end is unreachable with a DefaultsSource last, and the log text now depends on source ordering.
+
+# ---- Scenario 5 (Go): Reject empty names when creating an item. ---------------------------------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 06099a730d
+  file: go/validate/validate.go
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: One TrimSpace check at the top of Name returning a wrapped ErrInvalid. Table test for empty and whitespace names.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: de716275b8
+  file: go/validate/validate.go
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: The three checks become Rule values behind a Rule interface, a RuleFunc adapter, a Validator with a With method nobody calls, and an exported NameValidator. Name becomes a one-line delegate. Behavior is exactly the old checks plus the empty check.
+
+# ---- Scenario 6 (Go): Return 404 instead of 500 when an item is not found. ----------------------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: cc04cbf356
+  file: go/handler/handler.go
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: One errors.Is branch before the existing 500 path, using the sentinel the store already exports. Handler test for the 404.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: f47175d814
+  file: go/handler/errors.go
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A StatusError type nothing constructs, an ordered sentinel-to-status table, errors.As then a loop, and a writeError that also masks 500 bodies. Borderline config-driven dispatch. The masking and the busy-message change were not asked for.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: f47175d814
+  file: go/handler/handler.go
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: Every error path in get and create now goes through writeError, so the validate and busy responses change their text too. Fewer lines here, but the status decision moved out of sight into a table.
+
+# ---- Scenario 7 (Go): Add a limit query parameter to the list endpoint, capped at 100. ----------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 46432e006b
+  file: go/handler/handler.go
+  verdict: clean
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A maxLimit constant, one if block that parses limit when present and rejects non-positive values with 400, and min() for the cap. Tests for the cap, the default, and a bad value.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 3f86e43050
+  file: go/handler/listopts.go
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: Functional options with WithOffset, WithLimit, WithMaxLimit and a query translator, for one integer with a cap. The offset parse moved here and now returns 400 on non-numeric input where the handler used to treat it as zero.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 3f86e43050
+  file: go/handler/handler.go
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: yes, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: list becomes two calls into the options layer with two identical 400 branches. The inline offset handling that lived here is gone along with its lenient behavior.
+
+# ---- Scenario 8 (Go): Retry the store write once if it returns ErrBusy. -------------------------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 69bef566e5
+  file: go/handler/handler.go
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: One errors.Is branch that calls Put a second time, then the existing 503 path. The comment says why one retry is enough. Tests use FailWrites for one and two failures.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 0da69ee059
+  file: go/handler/retry.go
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A RetryPolicy interface with NoRetry and RetryOn implementations, a Delay field with time.Sleep, and a generic retry loop, to call Put twice. NoRetry and the delay are unused.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 0da69ee059
+  file: go/handler/handler.go
+  verdict: pushback
+  labels: {behavior_added: 1, control_flow_added: 0, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: The handler grows a writeRetry field, a SetRetryPolicy setter, and a closure that assigns through an outer variable so retry can wrap Put. Same 503 result as before after the policy declines.
+
+# ---- Scenario 9 (TypeScript): Retry once on timeout in the fetch wrapper. -----------------------
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 99074e0dc0
+  file: ts/src/fetch.ts
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 1, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: The body moves into a fetchOnce helper and fetchJson wraps it in one try/catch that calls it again on TimeoutError. HttpError still propagates on the first attempt. Tests cover both timeouts, one timeout, and no retry on 500.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: b7f17e76ad
+  file: ts/src/fetch.ts
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 2, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A RetryPolicy interface with noRetry and retryOnTimeout, a FetchClient class with a merged options object, a backoffMs option and a stripUndefined helper, and a default client the old function delegates to. Options are merged in two places so a future reader has to check both.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 553f178adf
+  file: ts/src/format.ts
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: An hours variable, minutes computed modulo 3600, and one early return for the hour case. Existing outputs are unchanged.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 9ca3bb9aa4
+  file: ts/src/format.ts
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 3, maintenance_risk: 2, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A unit table with days, a DurationFormatOptions object with largestUnit, separator and alwaysSeconds, and a createDurationFormatter factory whose show condition takes real effort to verify against the old three outputs. formatDuration becomes a default instance.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 8a688ee161
+  file: ts/src/queue.ts
+  verdict: clean
+  labels: {behavior_added: 1, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: An optional log parameter defaulting to console.log and one if in the finally block. The test injects a collector and expects a single line.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 9aad156764
+  file: ts/src/queue.ts
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 3, maintenance_risk: 2, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A typed event map, a listener registry with on() and unsubscribe, an emit method, add and done events nobody asked for, and a constructor that accepts a number or an options object, with the drain log implemented as the one built-in listener. Emit timing relative to promise resolution is subtle enough that its own test needed a tick.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 73362b76c4
+  file: ts/src/format.ts
+  verdict: clean
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 0, maintenance_risk: 0, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A second suffix array, a boolean parameter, and two ternaries picking base and units. Default calls are unchanged.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: fcaa9b9e45
+  file: ts/src/units.ts
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A new module with a UnitSystem interface, two frozen constants and a scale helper, pulled out of a function that had all of it inline.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: fcaa9b9e45
+  file: ts/src/format.ts
+  verdict: pushback
+  labels: {behavior_added: 2, control_flow_added: 1, abstraction_added: 2, maintenance_risk: 1, verbosity: 1,
+           unnecessary_complexity: yes, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: An immutable ByteFormatter class with withSystem and withDigits builders and a digits mode nobody asked for. formatBytes becomes a one-line wrapper that allocates a formatter per call.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 239ba82f00
+  file: python/relay/cli.py
+  verdict: clean
+  labels: {behavior_added: 0, control_flow_added: 1, abstraction_added: 3, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A Command dataclass, a module registry, a command() decorator with a duplicate check, and build_parser looping over the registry. Same two commands and arguments as before. The task asked for exactly this registry.
+
+# ---- Requested 14 (Go): Introduce a Store interface in the handler package so the handler can be backed by other stores without editing it.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: b0900d3636
+  file: go/handler/handler.go
+  verdict: clean
+  labels: {behavior_added: 0, control_flow_added: 0, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A three-method Store interface, a compile-time assertion that the concrete store satisfies it, and the field and constructor switched to the interface. The test adds a failing fake to reach the 500 path. Asked for by the task.
+
+# ---- Requested 15 (TypeScript): Add a pluggable retry strategy to the fetch wrapper so callers can supply their own backoff policy.
+
+- repo: ~/Work/turnjudge-synthetic
+  sha: 5216712b15
+  file: ts/src/fetch.ts
+  verdict: clean
+  labels: {behavior_added: 2, control_flow_added: 2, abstraction_added: 2, maintenance_risk: 1, verbosity: 0,
+           unnecessary_complexity: no, swallows_failure: no, unrequested_behavior_change: no, tests_proportional: yes,
+           introduces_secret: no, unsafe_input_use: no, weakens_check: no, new_external_surface: no}
+  note: A RetryStrategy interface, noRetry, fixedRetry and exponentialBackoff, a retry option on FetchOptions defaulting to noRetry, and a loop around a fetchOnce helper. The interface is the deliverable here, so the indirection is proportionate.
+

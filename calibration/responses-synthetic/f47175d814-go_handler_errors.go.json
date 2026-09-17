@@ -1,0 +1,170 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "f47175d814",
+ "file": "go/handler/errors.go",
+ "asked_at": "2026-09-17T08:46:18",
+ "seconds": 0.22,
+ "state": {
+  "task": "Return 404 instead of 500 when an item is not found.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "go/handler/errors.go",
+   "language": "go",
+   "status": "A",
+   "lines_added": 58,
+   "lines_removed": 0
+  },
+  "diff": "diff --git a/go/handler/errors.go b/go/handler/errors.go\nnew file mode 100644\nindex 0000000..121a227\n--- /dev/null\n+++ b/go/handler/errors.go\n@@ -0,0 +1,58 @@\n+package handler\n+\n+import (\n+\t\"errors\"\n+\t\"net/http\"\n+\n+\t\"example.com/relay/store\"\n+\t\"example.com/relay/validate\"\n+)\n+\n+// StatusError carries an explicit HTTP status with an error.\n+type StatusError struct {\n+\tErr    error\n+\tStatus int\n+}\n+\n+func (e *StatusError) Error() string { return e.Err.Error() }\n+\n+// Unwrap lets errors.Is see through to the underlying error.\n+func (e *StatusError) Unwrap() error { return e.Err }\n+\n+// errorMapping pairs a sentinel error with the status it should produce.\n+type errorMapping struct {\n+\tsentinel error\n+\tstatus   int\n+}\n+\n+// errorMappings is consulted in order; the first match wins.\n+var errorMappings = []errorMapping{\n+\t{store.ErrNotFound, http.StatusNotFound},\n+\t{store.ErrBusy, http.StatusServiceUnavailable},\n+\t{validate.ErrInvalid, http.StatusUnprocessableEntity},\n+}\n+\n+// statusFor resolves the HTTP status for err, defaulting to 500.\n+func statusFor(err error) int {\n+\tvar se *StatusError\n+\tif errors.As(err, &se) {\n+\t\treturn se.Status\n+\t}\n+\tfor _, m := range errorMappings {\n+\t\tif errors.Is(err, m.sentinel) {\n+\t\t\treturn m.status\n+\t\t}\n+\t}\n+\treturn http.StatusInternalServerError\n+}\n+\n+// writeError writes err as a plain-text response with its mapped status.\n+// Internal errors are not echoed to the client.\n+func writeError(w http.ResponseWriter, err error) {\n+\tstatus := statusFor(err)\n+\tmsg := err.Error()\n+\tif status == http.StatusInternalServerError {\n+\t\tmsg = http.StatusText(status)\n+\t}\n+\thttp.Error(w, msg, status)\n+}\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "go/handler/errors.go",
+    "status": "A",
+    "lines_added": 58,
+    "lines_removed": 0
+   },
+   {
+    "path": "go/handler/handler.go",
+    "status": "M",
+    "lines_added": 3,
+    "lines_removed": 8
+   },
+   {
+    "path": "go/handler/handler_test.go",
+    "status": "M",
+    "lines_added": 19,
+    "lines_removed": 0
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 1.67,
+    "confidence": 0.55,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.01,
+     "1": 0.38,
+     "2": 0.55,
+     "3": 0.06
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.86,
+    "confidence": 0.86,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.14,
+     "2": 0.86,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 2.49,
+    "confidence": 0.5,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.01,
+     "2": 0.5,
+     "3": 0.49
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.75
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 0.99,
+    "confidence": 0.82,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.09,
+     "1": 0.83,
+     "2": 0.08,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 1.08,
+    "confidence": 0.6,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.09,
+     "1": 0.74,
+     "2": 0.17
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.09
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.6
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.62
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.04
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.03
+   }
+  },
+  "usage": {
+   "input_tokens": 4544,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}

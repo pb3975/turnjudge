@@ -1,0 +1,170 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "5216712b15",
+ "file": "ts/src/fetch.ts",
+ "asked_at": "2026-09-17T08:46:19",
+ "seconds": 0.14,
+ "state": {
+  "task": "Add a pluggable retry strategy to the fetch wrapper so callers can supply their own backoff policy.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "ts/src/fetch.ts",
+   "language": "typescript",
+   "status": "M",
+   "lines_added": 48,
+   "lines_removed": 0
+  },
+  "diff": "diff --git a/ts/src/fetch.ts b/ts/src/fetch.ts\nindex cbe1732..5bfce19 100644\n--- a/ts/src/fetch.ts\n+++ b/ts/src/fetch.ts\n@@ -7,36 +7,84 @@ export class HttpError extends Error {\n   }\n }\n \n export class TimeoutError extends Error {\n   constructor(public readonly url: string, public readonly timeoutMs: number) {\n     super(`timed out after ${timeoutMs}ms fetching ${url}`);\n     this.name = \"TimeoutError\";\n   }\n }\n \n+/** Decides whether, and after how long, a failed attempt is tried again. */\n+export interface RetryStrategy {\n+  /** Return the delay in ms before retrying `attempt` (1-based), or null to give up. */\n+  delayBefore(attempt: number, err: unknown): number | null;\n+}\n+\n+export const noRetry: RetryStrategy = { delayBefore: () => null };\n+\n+/** Retry up to `times` on TimeoutError or 5xx, waiting `delayMs` each time. */\n+export function fixedRetry(times: number, delayMs = 0): RetryStrategy {\n+  return {\n+    delayBefore: (attempt, err) => (attempt <= times && isTransient(err) ? delayMs : null),\n+  };\n+}\n+\n+/** Retry up to `times` on TimeoutError or 5xx, doubling the delay from `baseMs`. */\n+export function exponentialBackoff(times: number, baseMs = 100): RetryStrategy {\n+  return {\n+    delayBefore: (attempt, err) =>\n+      attempt <= times && isTransient(err) ? baseMs * 2 ** (attempt - 1) : null,\n+  };\n+}\n+\n+function isTransient(err: unknown): boolean {\n+  return err instanceof TimeoutError || (err instanceof HttpError && err.status >= 500);\n+}\n+\n export interface FetchOptions {\n   timeoutMs?: number;\n   headers?: Record<string, string>;\n+  /** Defaults to noRetry, so existing callers see no change. */\n+  retry?: RetryStrategy;\n }\n \n const DEFAULT_TIMEOUT_MS = 5000;\n \n+const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));\n+\n export async function fetchJson<T>(url: string, opts: FetchOptions = {}): Promise<T> {\n+  const retry = opts.retry ?? noRetry;\n+  for (let attempt = 1; ; attempt++) {\n+    try {\n+      return await fetchOnce<T>(url, opts);\n+    } catch (err) {\n+      const delay = retry.delayBefore(attempt, err);\n+      if (delay === null) {\n+        throw err;\n+      }\n+      if (delay > 0) {\n+        await sleep(delay);\n+      }\n+    }\n+  }\n+}\n+\n+async function fetchOnce<T>(url: string, opts: FetchOptions): Promise<T> {\n   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;\n   const controller = new AbortController();\n   const timer = setTimeout(() => controller.abort(), timeoutMs);\n   try {\n     const res = await fetch(url, { signal: controller.signal, headers: opts.headers });\n     if (!res.ok) {\n       throw new HttpError(res.status, url);\n     }\n     return (await res.json()) as T;\n   } catch (err) {\n     if ((err as Error).name === \"AbortError\") {\n       throw new TimeoutError(url, timeoutMs);\n     }\n     throw err;\n   } finally {\n     clearTimeout(timer);\n   }\n }\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "ts/src/fetch.ts",
+    "status": "M",
+    "lines_added": 48,
+    "lines_removed": 0
+   },
+   {
+    "path": "ts/src/index.ts",
+    "status": "M",
+    "lines_added": 2,
+    "lines_removed": 1
+   },
+   {
+    "path": "ts/test/fetch.test.ts",
+    "status": "M",
+    "lines_added": 35,
+    "lines_removed": 1
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 2.36,
+    "confidence": 0.64,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.64,
+     "3": 0.36
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.87,
+    "confidence": 0.87,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.13,
+     "2": 0.87,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 2.09,
+    "confidence": 0.91,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.91,
+     "3": 0.09
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.23
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 0.89,
+    "confidence": 0.86,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.12,
+     "1": 0.86,
+     "2": 0.02,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 0.52,
+    "confidence": 0.26,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.48,
+     "1": 0.51,
+     "2": 0.01
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.05
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.24
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.66
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.03
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.03
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.04
+   }
+  },
+  "usage": {
+   "input_tokens": 4868,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}

@@ -41,13 +41,17 @@ def test_unrequested_boundary():
     assert verdict(unrequested_behavior_change=T["unrequested_change_block"] - 0.01).outcome == "pass"
 
 
-def test_complexity_needs_all_three_conditions():
-    base = dict(unnecessary_complexity=T["unnecessary_complexity_block"], abstraction_added=2.0, behavior_added=1.0)
-    assert rules(verdict(**base)) == ["unnecessary_complexity"]
-    assert verdict(**{**base, "unnecessary_complexity": 0.79}).outcome == "pass"
-    assert verdict(**{**base, "abstraction_added": 1.9}).outcome == "pass"
-    assert verdict(**{**base, "behavior_added": 1.1}).outcome == "pass"
+def test_complexity_block_needs_structure_and_advise_needs_only_probability():
+    base = dict(unnecessary_complexity=T["unnecessary_complexity_block"], abstraction_added=2.0, behavior_added=2.5)
+    v = verdict(**base)
+    assert v.outcome == "block" and rules(v) == ["unnecessary_complexity"]  # behavior added does not gate the block
+    just_under = verdict(**{**base, "unnecessary_complexity": T["unnecessary_complexity_block"] - 0.01})
+    assert just_under.outcome == "advise" and rules(just_under) == ["unnecessary_complexity"]
+    no_structure = verdict(**{**base, "abstraction_added": 1.9, "control_flow_added": 1.9})
+    assert no_structure.outcome == "advise"  # high probability but no structure: advise, never block
     assert rules(verdict(**{**base, "abstraction_added": 0.0, "control_flow_added": 2.0})) == ["unnecessary_complexity"]
+    assert verdict(unnecessary_complexity=T["unnecessary_complexity_advise"]).outcome == "advise"
+    assert verdict(unnecessary_complexity=T["unnecessary_complexity_advise"] - 0.01).outcome == "pass"
 
 
 def test_maintenance_advise_needs_confidence():
@@ -90,7 +94,7 @@ def test_templates_fill_every_slot():
                 swallows_failure=0.9, unrequested_behavior_change=0.9, unnecessary_complexity=0.9,
                 abstraction_added=2.6, behavior_added=0.8, maintenance_risk=(2.5, 0.8), verbosity=1.8,
                 tests_proportional=0.1)
-    assert len(v.fired) == 9  # tests rule needs behavior >= 2, which the complexity rule needs <= 1
+    assert len(v.fired) == 9  # tests rule needs behavior >= 2; here behavior is 0.8 so it stays quiet
     text = render_feedback([v], blocking=True)
     assert "{" not in text and "}" not in text
     assert "`src/x.py`" in text and "fix the nil deref" in text and "abstraction 2.6/3" in text and "behavior 0.8/3" in text

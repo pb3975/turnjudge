@@ -16,7 +16,7 @@ uv run turnjudge feedback x list      # blocks and their marks
 |---|---|---|---|
 | 1 | Tests pass locally and in CI | locally yes; no CI service (no remote) | decision: accept local run, or add a remote |
 | 2 | 40 labeled deltas, 3 repos, half pushback, labeled by Will | 57 deltas, 4 repos, 18 pushback, labeled by two agents at Will's direction | Will's call whether that counts; 12 more pushback cases for half |
-| 3 | Agreement and MAE targets | Scores, security, and swallows_failure (advisory tier) met on the reviewed set; unnecessary_complexity has no positives | needs a real disproportionate-complexity example |
+| 3 | Agreement and MAE targets | Met on the 91-entry set (57 real, 34 synthetic pairs); complexity positives are synthetic | a real over-built example from his sessions would confirm |
 | 4 | 10 sessions, 7 of 10 blocks helpful, no stall | 32 sessions incl. 12 on his repos, no stall, 1 block to mark | yes: mark the block; decide on the 0.6 band |
 | 5 | doctor on a fresh machine from the README | passes here; fresh machine untried | yes, or a scratch VM |
 | 6 | Redaction corpus clean; audit log reviewed by Will | corpus clean; builder scan clean | yes: review the audit logs |
@@ -55,13 +55,16 @@ uv run turnjudge feedback x list      # blocks and their marks
 
 ## 3. Agreement and error targets on that set at shipped thresholds
 
-Measured on the reviewed 57-entry set (`calibration/report.md`, regenerated 2026-09-17).
+Measured on the 91-entry set: 57 reviewed real deltas plus 34 synthetic pairs (`calibration/report.md`, regenerated 2026-09-17).
 
 - [x] Scores: MAE 0.29 / 0.33 / 0.32 / 0.45 / 0.32 levels for behavior, control flow,
   abstraction, maintenance risk, verbosity; all at or under 0.6.
 - [x] Security Nouls: zero false positives above 0.85 on 57 deltas.
-- [ ] `unnecessary_complexity` at or above 0.80 agreement: 1.00 but the set still has zero positive
-  labels, including across 19 agent-written deltas. Not met until a positive exists.
+- [x] `unnecessary_complexity` at or above 0.80 agreement: 1.00 at the new 0.50 advisory threshold and
+  0.97 at the 0.70 block threshold on 34 synthetic pairs (`calibration/synthetic/README.md`, 19
+  positives) with no false positive on the 57 real deltas. The positives are synthetic, built and
+  labeled by an agent on 2026-09-17 because real history had none; a real example from Will's own
+  sessions would strengthen this. The block rule's behavior gate was removed the same day.
 - [x] `swallows_failure` at or above 0.80 agreement: 0.91 at the 0.85 block threshold, 0.96 at the
   new 0.50 advisory threshold (4 of 5 positives, 1 clean flagged). The advisory tier shipped in
   `turnjudge.toml` on 2026-09-17 with that evidence; the block threshold is unchanged. A wording

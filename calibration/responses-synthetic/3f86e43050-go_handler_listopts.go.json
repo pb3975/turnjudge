@@ -1,0 +1,170 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "3f86e43050",
+ "file": "go/handler/listopts.go",
+ "asked_at": "2026-09-17T08:46:18",
+ "seconds": 0.15,
+ "state": {
+  "task": "Add a limit query parameter to the list endpoint, capped at 100.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "go/handler/listopts.go",
+   "language": "go",
+   "status": "A",
+   "lines_added": 84,
+   "lines_removed": 0
+  },
+  "diff": "diff --git a/go/handler/listopts.go b/go/handler/listopts.go\nnew file mode 100644\nindex 0000000..e28585d\n--- /dev/null\n+++ b/go/handler/listopts.go\n@@ -0,0 +1,84 @@\n+package handler\n+\n+import (\n+\t\"fmt\"\n+\t\"net/url\"\n+\t\"strconv\"\n+)\n+\n+const (\n+\tdefaultLimit = 50\n+\tmaxLimit     = 100\n+)\n+\n+// ListOptions controls a list request.\n+type ListOptions struct {\n+\tOffset int\n+\tLimit  int\n+}\n+\n+// ListOption adjusts ListOptions and may reject the adjustment.\n+type ListOption func(*ListOptions) error\n+\n+// WithOffset skips the first n items. Negative values are treated as zero.\n+func WithOffset(n int) ListOption {\n+\treturn func(o *ListOptions) error {\n+\t\tif n < 0 {\n+\t\t\tn = 0\n+\t\t}\n+\t\to.Offset = n\n+\t\treturn nil\n+\t}\n+}\n+\n+// WithLimit returns at most n items.\n+func WithLimit(n int) ListOption {\n+\treturn func(o *ListOptions) error {\n+\t\tif n < 1 {\n+\t\t\treturn fmt.Errorf(\"limit must be a positive integer\")\n+\t\t}\n+\t\to.Limit = n\n+\t\treturn nil\n+\t}\n+}\n+\n+// WithMaxLimit caps whatever limit was set before it.\n+func WithMaxLimit(max int) ListOption {\n+\treturn func(o *ListOptions) error {\n+\t\tif o.Limit > max {\n+\t\t\to.Limit = max\n+\t\t}\n+\t\treturn nil\n+\t}\n+}\n+\n+// newListOptions applies opts in order over the defaults.\n+func newListOptions(opts ...ListOption) (ListOptions, error) {\n+\to := ListOptions{Offset: 0, Limit: defaultLimit}\n+\tfor _, opt := range opts {\n+\t\tif err := opt(&o); err != nil {\n+\t\t\treturn ListOptions{}, err\n+\t\t}\n+\t}\n+\treturn o, nil\n+}\n+\n+// listOptionsFromQuery translates query parameters into options.\n+func listOptionsFromQuery(q url.Values) ([]ListOption, error) {\n+\tvar opts []ListOption\n+\tif raw := q.Get(\"offset\"); raw != \"\" {\n+\t\tn, err := strconv.Atoi(raw)\n+\t\tif err != nil {\n+\t\t\treturn nil, fmt.Errorf(\"offset must be an integer\")\n+\t\t}\n+\t\topts = append(opts, WithOffset(n))\n+\t}\n+\tif raw := q.Get(\"limit\"); raw != \"\" {\n+\t\tn, err := strconv.Atoi(raw)\n+\t\tif err != nil {\n+\t\t\treturn nil, fmt.Errorf(\"limit must be an integer\")\n+\t\t}\n+\t\topts = append(opts, WithLimit(n))\n+\t}\n+\treturn append(opts, WithMaxLimit(maxLimit)), nil\n+}\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "go/handler/handler.go",
+    "status": "M",
+    "lines_added": 11,
+    "lines_removed": 5
+   },
+   {
+    "path": "go/handler/handler_test.go",
+    "status": "M",
+    "lines_added": 27,
+    "lines_removed": 0
+   },
+   {
+    "path": "go/handler/listopts.go",
+    "status": "A",
+    "lines_added": 84,
+    "lines_removed": 0
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 2.05,
+    "confidence": 0.94,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.95,
+     "3": 0.05
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.98,
+    "confidence": 0.98,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.02,
+     "2": 0.98,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 2.03,
+    "confidence": 0.96,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.96,
+     "3": 0.04
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.72
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 0.8,
+    "confidence": 0.75,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.22,
+     "1": 0.76,
+     "2": 0.02,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 1.02,
+    "confidence": 0.73,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.08,
+     "1": 0.82,
+     "2": 0.1
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.12
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.5
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.65
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.03
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.04
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.02
+   }
+  },
+  "usage": {
+   "input_tokens": 4724,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}

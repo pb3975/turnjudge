@@ -1,0 +1,164 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "de716275b8",
+ "file": "go/validate/validate.go",
+ "asked_at": "2026-09-17T08:46:18",
+ "seconds": 0.19,
+ "state": {
+  "task": "Reject empty names when creating an item.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "go/validate/validate.go",
+   "language": "go",
+   "status": "M",
+   "lines_added": 75,
+   "lines_removed": 8
+  },
+  "diff": "diff --git a/go/validate/validate.go b/go/validate/validate.go\nindex 860e320..b17de41 100644\n--- a/go/validate/validate.go\n+++ b/go/validate/validate.go\n@@ -1,27 +1,94 @@\n // Package validate checks user-supplied item fields.\n+//\n+// Checks are expressed as Rules and composed into a Validator, so a field's\n+// requirements can be extended or reordered without touching the callers.\n package validate\n \n import (\n \t\"errors\"\n \t\"fmt\"\n+\t\"strings\"\n \t\"unicode/utf8\"\n )\n \n // MaxNameLen is the longest name accepted, in runes.\n const MaxNameLen = 64\n \n // ErrInvalid wraps every validation failure.\n var ErrInvalid = errors.New(\"invalid\")\n \n-// Name checks that a name is usable as an item name.\n-func Name(name string) error {\n-\tif utf8.RuneCountInString(name) > MaxNameLen {\n-\t\treturn fmt.Errorf(\"%w: name longer than %d characters\", ErrInvalid, MaxNameLen)\n-\t}\n-\tfor _, r := range name {\n-\t\tif r == '\\n' || r == '\\t' || r == '\\r' {\n-\t\t\treturn fmt.Errorf(\"%w: name contains control characters\", ErrInvalid)\n+// Rule checks one property of a value.\n+type Rule interface {\n+\tCheck(value string) error\n+}\n+\n+// RuleFunc adapts a plain function to Rule.\n+type RuleFunc func(value string) error\n+\n+// Check implements Rule.\n+func (f RuleFunc) Check(value string) error { return f(value) }\n+\n+// Validator runs its rules in order and returns the first failure.\n+type Validator struct {\n+\trules []Rule\n+}\n+\n+// NewValidator builds a validator from rules, applied in the order given.\n+func NewValidator(rules ...Rule) *Validator {\n+\treturn &Validator{rules: rules}\n+}\n+\n+// With returns a copy of v with extra rules appended.\n+func (v *Validator) With(rules ...Rule) *Validator {\n+\treturn NewValidator(append(append([]Rule{}, v.rules...), rules...)...)\n+}\n+\n+// Validate applies every rule to value.\n+func (v *Validator) Validate(value string) error {\n+\tfor _, r := range v.rules {\n+\t\tif err := r.Check(value); err != nil {\n+\t\t\treturn err\n \t\t}\n \t}\n \treturn nil\n }\n+\n+// NotEmpty rejects values that are empty or whitespace only.\n+func NotEmpty() Rule {\n+\treturn RuleFunc(func(value string) error {\n+\t\tif strings.TrimSpace(value) == \"\" {\n+\t\t\treturn fmt.Errorf(\"%w: name is empty\", ErrInvalid)\n+\t\t}\n+\t\treturn nil\n+\t})\n+}\n+\n+// MaxLen rejects values longer than n runes.\n+func MaxLen(n int) Rule {\n+\treturn RuleFunc(func(value string) error {\n+\t\tif utf8.RuneCountInString(value) > n {\n+\t\t\treturn fmt.Errorf(\"%w: name longer than %d characters\", ErrInvalid, n)\n+\t\t}\n+\t\treturn nil\n+\t})\n+}\n+\n+// NoControlChars rejects values containing newlines or tabs.\n+func NoControlChars() Rule {\n+\treturn RuleFunc(func(value string) error {\n+\t\tfor _, r := range value {\n+\t\t\tif r == '\\n' || r == '\\t' || r == '\\r' {\n+\t\t\t\treturn fmt.Errorf(\"%w: name contains control characters\", ErrInvalid)\n+\t\t\t}\n+\t\t}\n+\t\treturn nil\n+\t})\n+}\n+\n+// NameValidator is the rule set applied to item names.\n+var NameValidator = NewValidator(NotEmpty(), MaxLen(MaxNameLen), NoControlChars())\n+\n+// Name checks that a name is usable as an item name.\n+func Name(name string) error {\n+\treturn NameValidator.Validate(name)\n+}\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "go/validate/validate.go",
+    "status": "M",
+    "lines_added": 75,
+    "lines_removed": 8
+   },
+   {
+    "path": "go/validate/validate_test.go",
+    "status": "M",
+    "lines_added": 17,
+    "lines_removed": 0
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 1.42,
+    "confidence": 0.58,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.67,
+     "2": 0.24,
+     "3": 0.09
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.82,
+    "confidence": 0.82,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.18,
+     "2": 0.82,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 2.09,
+    "confidence": 0.91,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.91,
+     "3": 0.09
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.87
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 1.04,
+    "confidence": 0.88,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.04,
+     "1": 0.88,
+     "2": 0.08,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 1.58,
+    "confidence": 0.37,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.02,
+     "1": 0.39,
+     "2": 0.59
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.04
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.63
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.65
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.05
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.02
+   }
+  },
+  "usage": {
+   "input_tokens": 4869,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}

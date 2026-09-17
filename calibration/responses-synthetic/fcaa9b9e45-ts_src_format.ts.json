@@ -1,0 +1,176 @@
+{
+ "repo": "~/Work/turnjudge-synthetic",
+ "sha": "fcaa9b9e45",
+ "file": "ts/src/format.ts",
+ "asked_at": "2026-09-17T08:46:19",
+ "seconds": 0.2,
+ "state": {
+  "task": "Add an option to formatBytes to use decimal units like kB and MB instead of binary ones.",
+  "standards": "# Standards for changes in this project\n\nThese are the standards a change is judged against. Keep them short and plain; they are the\nfirst knob to turn when the review is too strict or too loose, before touching thresholds.\n\n- A change should do what the task asked and no more. Extra features, refactors, or renames\n  that the task did not ask for are unrequested, even when they are improvements.\n- Prefer the inline change. Add a helper, type, or interface only when it is used in more\n  than one place or the task asked for it.\n- Never turn a failure into silence. A failure that used to raise, exit non-zero, or assert\n  should still surface; catching it to log and continue needs a stated reason.\n- New behavior comes with tests unless the task said otherwise or the project has no test\n  suite for that layer.\n- No hardcoded credentials, tokens, or keys. Read them from the environment or a key file.\n- Untrusted input never reaches a shell, an SQL string, a file path, eval, or a deserializer\n  without validation.\n- Do not remove or loosen validation, authentication, authorization, TLS verification, or a\n  safety check without saying why.\n- Comments explain why, not what. Do not restate the code.\n",
+  "repo": {
+   "name": "turnjudge-synthetic",
+   "language": "python"
+  },
+  "file": {
+   "path": "ts/src/format.ts",
+   "language": "typescript",
+   "status": "M",
+   "lines_added": 26,
+   "lines_removed": 11
+  },
+  "diff": "diff --git a/ts/src/format.ts b/ts/src/format.ts\nindex 533ffd2..df446c5 100644\n--- a/ts/src/format.ts\n+++ b/ts/src/format.ts\n@@ -1,26 +1,41 @@\n /** Human-readable formatting for sizes, durations, and dates. */\n \n-const BYTE_UNITS = [\"B\", \"KiB\", \"MiB\", \"GiB\", \"TiB\"];\n+import { BINARY, scale, type UnitSystem } from \"./units.js\";\n \n-export function formatBytes(n: number): string {\n-  if (n < 0 || !Number.isFinite(n)) {\n-    throw new RangeError(`cannot format ${n} bytes`);\n+/** Formats byte counts in a chosen unit system. Immutable; `with*` return new formatters. */\n+export class ByteFormatter {\n+  constructor(\n+    private readonly system: UnitSystem = BINARY,\n+    private readonly digits: number | \"auto\" = \"auto\",\n+  ) {}\n+\n+  withSystem(system: UnitSystem): ByteFormatter {\n+    return new ByteFormatter(system, this.digits);\n   }\n-  let value = n;\n-  let unit = 0;\n-  while (value >= 1024 && unit < BYTE_UNITS.length - 1) {\n-    value /= 1024;\n-    unit++;\n+\n+  withDigits(digits: number): ByteFormatter {\n+    return new ByteFormatter(this.system, digits);\n   }\n-  const digits = unit === 0 ? 0 : 1;\n-  return `${value.toFixed(digits)} ${BYTE_UNITS[unit]}`;\n+\n+  format(n: number): string {\n+    if (n < 0 || !Number.isFinite(n)) {\n+      throw new RangeError(`cannot format ${n} bytes`);\n+    }\n+    const { value, index } = scale(n, this.system);\n+    const digits = this.digits === \"auto\" ? (index === 0 ? 0 : 1) : this.digits;\n+    return `${value.toFixed(digits)} ${this.system.suffixes[index]}`;\n+  }\n+}\n+\n+export function formatBytes(n: number, system: UnitSystem = BINARY): string {\n+  return new ByteFormatter(system).format(n);\n }\n \n export function formatDuration(ms: number): string {\n   const totalSeconds = Math.round(ms / 1000);\n   const minutes = Math.floor(totalSeconds / 60);\n   const seconds = totalSeconds % 60;\n   if (minutes === 0) {\n     return `${seconds}s`;\n   }\n   return `${minutes}m ${seconds}s`;\n",
+  "turn_summary": "(historical commit: no agent summary)",
+  "turn_files_changed": [
+   {
+    "path": "ts/src/format.ts",
+    "status": "M",
+    "lines_added": 26,
+    "lines_removed": 11
+   },
+   {
+    "path": "ts/src/index.ts",
+    "status": "M",
+    "lines_added": 2,
+    "lines_removed": 1
+   },
+   {
+    "path": "ts/src/units.ts",
+    "status": "A",
+    "lines_added": 29,
+    "lines_removed": 0
+   },
+   {
+    "path": "ts/test/format.test.ts",
+    "status": "M",
+    "lines_added": 11,
+    "lines_removed": 1
+   }
+  ]
+ },
+ "response": {
+  "model": "jev-1.13.0",
+  "answers": {
+   "behavior_added": {
+    "type": "score",
+    "score": 2.12,
+    "confidence": 0.87,
+    "legend": {
+     "0": "No behavior change: formatting, comments, renames, moves, or a refactor whose observable behavior is identical",
+     "1": "A small fix or tweak: one bug fixed, one message or value changed, one edge case handled",
+     "2": "One new observable capability or code path: a new option, endpoint, command, handler, or a branch users can reach",
+     "3": "Several capabilities or a substantial feature: multiple new paths, a new subsystem, or a change users would call a feature"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.87,
+     "3": 0.13
+    }
+   },
+   "control_flow_added": {
+    "type": "score",
+    "score": 1.13,
+    "confidence": 0.81,
+    "legend": {
+     "0": "No new branches, loops, or early returns",
+     "1": "One or two simple conditions or a single loop",
+     "2": "Nested conditions, multiple loops, or new error-handling paths",
+     "3": "Deeply nested logic, a state machine, or many interacting branches"
+    },
+    "probabilities": {
+     "0": 0.03,
+     "1": 0.81,
+     "2": 0.16,
+     "3": 0.0
+    }
+   },
+   "abstraction_added": {
+    "type": "score",
+    "score": 2.0,
+    "confidence": 0.99,
+    "legend": {
+     "0": "None: the changes are inline in existing code",
+     "1": "One helper function or type that is used right here",
+     "2": "A new interface, base class, generic, or indirection layer between callers and the work",
+     "3": "A framework-like layer: registries, plugins, factories, or config-driven dispatch"
+    },
+    "probabilities": {
+     "0": 0.0,
+     "1": 0.0,
+     "2": 0.99,
+     "3": 0.01
+    }
+   },
+   "unnecessary_complexity": {
+    "type": "noul",
+    "noul": 0.82
+   },
+   "maintenance_risk": {
+    "type": "score",
+    "score": 1.11,
+    "confidence": 0.83,
+    "legend": {
+     "0": "Localized and straightforward: a future reader can change it safely by reading the diff alone",
+     "1": "Adds some interaction or indirection, but the behavior stays clear from nearby code",
+     "2": "Adds coupled branches or responsibilities that need substantial surrounding context to modify safely",
+     "3": "Makes behavior hard to reason about or creates significant risk that a later change breaks it"
+    },
+    "probabilities": {
+     "0": 0.03,
+     "1": 0.84,
+     "2": 0.13,
+     "3": 0.0
+    }
+   },
+   "verbosity": {
+    "type": "score",
+    "score": 1.21,
+    "confidence": 0.54,
+    "legend": {
+     "0": "Nothing beyond what the task needs",
+     "1": "Some boilerplate, comments that restate the code, or redundant checks",
+     "2": "Substantial padding, over-defensive checks, or duplicated logic"
+    },
+    "probabilities": {
+     "0": 0.05,
+     "1": 0.69,
+     "2": 0.26
+    }
+   },
+   "swallows_failure": {
+    "type": "noul",
+    "noul": 0.05
+   },
+   "unrequested_behavior_change": {
+    "type": "noul",
+    "noul": 0.6
+   },
+   "tests_proportional": {
+    "type": "noul",
+    "noul": 0.68
+   },
+   "introduces_secret": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "unsafe_input_use": {
+    "type": "noul",
+    "noul": 0.02
+   },
+   "weakens_check": {
+    "type": "noul",
+    "noul": 0.04
+   },
+   "new_external_surface": {
+    "type": "noul",
+    "noul": 0.02
+   }
+  },
+  "usage": {
+   "input_tokens": 4665,
+   "output_tokens": 232,
+   "billing_units": null
+  }
+ },
+ "error": null
+}
