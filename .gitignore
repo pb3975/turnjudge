@@ -7,3 +7,9 @@ __pycache__/
 *.key
 /calibration/scratch/
 /.claude/settings.local.json
+
+# Recorded Jev responses for the real (private-repo) deltas live outside the repo; see calibration/README.md
+/calibration/responses
+/calibration/responses-v1
+/calibration/responses-v2
+/calibration/responses-v3

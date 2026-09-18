@@ -9,7 +9,7 @@ snapshots the agent's delta at the end of each Claude Code turn, redacts it, ask
 System One model (Jev) a fixed set of typed questions about complexity, maintainability,
 behavioral risk, and security, applies a policy in code, and feeds templated findings back to
 the agent through a Stop hook. The full specification is in
-`/home/wam/Work/jev-playgorund/docs/SPEC-jev-review.md`. Read it completely before doing anything.
+`~/Work/jev-playgorund/docs/SPEC-jev-review.md`. Read it completely before doing anything.
 
 ## Ground rules
 
@@ -24,14 +24,14 @@ the agent through a Stop hook. The full specification is in
 2. **Follow the Claude Code hooks reference** at `https://code.claude.com/docs/en/hooks`.
    Verify the Stop hook's `stop_hook_active` and `last_assistant_message` fields, the
    `decision`/`reason` output for Stop, `prompt` on UserPromptSubmit, and plugin `hooks/hooks.json`.
-3. **The repo is private and stays private.** Create it at `/home/wam/Work/jev-review` as a new
+3. **The repo is private and stays private.** Create it at `~/Work/jev-review` as a new
    git repo. Do not create a GitHub remote, publish a package, publish an artifact, or make
    anything public. Will signs off on publication separately.
 4. **Key handling.** The TypeSafe key is read from `TYPESAFE_API_KEY` or
    `~/.config/jev-review/key` (0600). Never commit it, never write it into settings files, never
-   print it. A working key is available in `/home/wam/Work/jev-playgorund/.env` for this build;
+   print it. A working key is available in `~/Work/jev-playgorund/.env` for this build;
    copy it to the key file location once and use that. The playground's `.env` will be deleted.
-5. **Prior art you can reuse.** `/home/wam/Work/jev-playgorund` has two working Jev pipelines
+5. **Prior art you can reuse.** `~/Work/jev-playgorund` has two working Jev pipelines
    (`src/jev_playground/scan.py` and `src/jev_playground/email/triage.py`). The facts-plus-
    question-set-plus-decide() split, the JSONL checkpointing, the msgspec usage serialization,
    and the dry-run mode are all patterns to carry over. Do not depend on that package.

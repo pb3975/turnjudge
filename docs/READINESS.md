@@ -112,7 +112,7 @@ Measured on the 91-entry set: 57 reviewed real deltas plus 34 synthetic pairs (`
 
 ## 7. Plugin installs via marketplace add and plugin install; /turnjudge works
 
-- [x] `claude plugin marketplace add /home/wam/Work/turnjudge` then
+- [x] `claude plugin marketplace add ~/Work/turnjudge` then
   `claude plugin install turnjudge@turnjudge-local --scope local` succeeded in a scratch repo on
   2026-09-16 (`claude plugin list` shows turnjudge@turnjudge-local 0.1.0 enabled).
   `claude plugin validate .` passes. `/turnjudge` invoked headlessly in that repo ran
@@ -201,7 +201,7 @@ eer-openai-agentic-software-factory.yaml pass       1.75    0.00    0.01    0.04
 arp-crawl-walk-run-software-factory.yaml pass       1.88    0.00    0.05    0.03    0.06    0.10    0.05    0.09    0.78    0.04    0.02    0.02    0.03
 
 turn outcome: pass
-audit: /home/wam/.local/state/turnjudge/asf-99a3d97b/audit/2026-09-17.jsonl
+audit: ~/.local/state/turnjudge/asf-99a3d97b/audit/2026-09-17.jsonl
 ```
 
 nests PR 95 "Publish verified fleet bundles and verify Host downloads" (2 commits, 10 files: two
@@ -223,7 +223,7 @@ scripts/fleet-release/manifest_test.py   pass       1.01    1.28    1.00    0.20
 scripts/fleet-release/package.sh         pass       2.58    1.74    0.19    1.58    0.87    0.36    0.12    0.70    0.40    0.04    0.19    0.10    0.11
 
 turn outcome: pass
-audit: /home/wam/.local/state/turnjudge/nests-1a3dfcc4/audit/2026-09-17.jsonl
+audit: ~/.local/state/turnjudge/nests-1a3dfcc4/audit/2026-09-17.jsonl
 ```
 
 ## Evidence log
@@ -239,12 +239,12 @@ $ TURNJUDGE_LIVE=1 uv run pytest -q tests/test_live.py
 .                                                                        [100%]
 
 $ uv run turnjudge doctor
-ok   key        key file /home/wam/.config/turnjudge/key (mode 0600)
+ok   key        key file ~/.config/turnjudge/key (mode 0600)
 ok   git        git on PATH
 ok   repo       repo turnjudge
-ok   standards  standards: /home/wam/Work/turnjudge/STANDARDS.md
-ok   state      state dir /home/wam/.local/state/turnjudge
-ok   config     config: /home/wam/Work/turnjudge/turnjudge.toml
+ok   standards  standards: ~/Work/turnjudge/STANDARDS.md
+ok   state      state dir ~/.local/state/turnjudge
+ok   config     config: ~/Work/turnjudge/turnjudge.toml
 ok   mode       mode=block subagents=advise timeout=45.0s model=jev-latest
 ok   api        reachable (0.34s, model jev-1.13.0)
 

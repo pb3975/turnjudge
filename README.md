@@ -8,8 +8,24 @@ code, and feeds templated findings back to the agent through a Stop hook.
 Jev judges; code decides. The model only returns numbers, so nothing it says can carry
 instructions. Every feedback string is authored in this repository (`src/turnjudge/policy.py`).
 
-Status: private. See `docs/SPEC-jev-review.md` for the design and `docs/READINESS.md` for what is
-and is not proven yet.
+## Status: an experiment in progress
+
+This is a personal tool, three days old, published so the work can be seen, not because it is
+finished. What is and is not proven is tracked honestly in `docs/READINESS.md`; the short version:
+
+- It runs, never stalls the agent, and has reviewed a few dozen agent sessions on real repos.
+- Its judgments were checked against 91 labeled file diffs (57 from real commits, 34 synthetic
+  pairs). The report is `calibration/report.md`. Most questions track the labels; the misses are
+  listed there too.
+- The thresholds in `turnjudge.toml` say "uncalibrated" or name the evidence behind them. Treat
+  every one as a starting point for your own repos, not a recommendation.
+- What it does not yet have is a record of whether its interruptions are welcome. That comes from
+  use, one `turnjudge feedback` mark at a time.
+
+Expect the question wording, thresholds, and feedback templates to change. If you try it, the
+audit log tells you exactly what left your machine, and `mode = "advise"` makes it a commentator
+instead of a gate. The design is in `docs/SPEC-jev-review.md` (written under the tool's original
+name).
 
 ## Install
 
